@@ -105,14 +105,14 @@ pipeline {
         success {
           script {
             if (env.BRANCH_NAME == 'develop' || env.BRANCH_NAME == 'master' || env.BRANCH_NAME =~ 'rc.*')
-            slackSend (color: '#00FF00', message: "SUCCESSFUL\n*Job:* `${env.JOB_NAME}`\n*Build:* `${env.BUILD_NUMBER}`\n *Commit:* `${env.GIT_HASH}`\n *More info at:* `${env.BUILD_URL}`")
+            slackSend (color: '#00FF00', channel: "#casper-wallet-alerts", message: "SUCCESSFUL\n*Job:* `${env.JOB_NAME}`\n*Build:* `${env.BUILD_NUMBER}`\n *Commit:* `${env.GIT_HASH}`\n *More info at:* `${env.BUILD_URL}`")
           }
         }
 
         failure {
           script {
             if (env.BRANCH_NAME == 'develop' || env.BRANCH_NAME == 'master' || env.BRANCH_NAME =~ 'rc.*')
-            slackSend (color: '#FF0000', message: "FAILED\n*Job:* `${env.JOB_NAME}`\n*Build:* `${env.BUILD_NUMBER}`\n *Commit:* `${env.GIT_HASH}`\n *More info at:* `${env.BUILD_URL}`")
+            slackSend (color: '#FF0000', channel: "#casper-wallet-alerts", message: "FAILED\n*Job:* `${env.JOB_NAME}`\n*Build:* `${env.BUILD_NUMBER}`\n *Commit:* `${env.GIT_HASH}`\n *More info at:* `${env.BUILD_URL}`")
           }
         }
     }
