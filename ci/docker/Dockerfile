@@ -4,9 +4,6 @@ WORKDIR /app/builder
 
 COPY . .
 
-# RUN cd playground && npm install
-# RUN cd playground && npm run build
-
 RUN npm install
 RUN npm run build
 
