@@ -33,7 +33,6 @@ const Row = styled(Container)({
 function App() {
   const {
     activePublicKey,
-    errorMessage,
     logs,
     connect,
     disconnect,
@@ -253,7 +252,6 @@ function App() {
           </div>
         )}
       </Row>
-      {errorMessage && <div>{errorMessage}</div>}
       <div>
         {logs.map(([log, payload], index) => (
           <div key={index}>

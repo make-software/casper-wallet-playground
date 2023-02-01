@@ -36,7 +36,6 @@ export type WalletState = {
 
 type WalletService = {
   logs: [string, object][];
-  errorMessage: string | null;
   activePublicKey: string | null;
   connect: () => Promise<boolean>;
   disconnect: () => Promise<boolean>;
@@ -67,7 +66,6 @@ export const useWalletService = () => {
 };
 
 export const WalletServiceProvider = (props) => {
-  const [error, setError] = useState<null | Error>(null);
   const [logs, setLogs] = useState<[string, object][]>([]);
   const log = (msg: string, payload?: any) =>
     setLogs((state) => [[msg, payload], ...state]);
@@ -266,7 +264,6 @@ export const WalletServiceProvider = (props) => {
 
   const contextProps: WalletService = {
     logs,
-    errorMessage: error?.message || null,
     activePublicKey: activePublicKey,
     connect: connect,
     disconnect: disconnect,
