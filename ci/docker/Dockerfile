@@ -4,8 +4,11 @@ WORKDIR /app/builder
 
 COPY . .
 
-RUN cd playground && npm install
-RUN cd playground && npm run build
+# RUN cd playground && npm install
+# RUN cd playground && npm run build
+
+RUN npm install
+RUN npm run build
 
 FROM nginx:1.22.0
 
