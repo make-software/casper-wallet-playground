@@ -32,8 +32,8 @@ const Row = styled(Container)({
 
 function App() {
   const {
-    activePublicKey,
     logs,
+    activePublicKey,
     connect,
     disconnect,
     switchAccount,
@@ -86,8 +86,8 @@ function App() {
       });
   };
 
-  const handleConnect = isConnected ? disconnect : connect;
-  const connectButtonText = !isConnected ? `Connect` : 'Disconnect';
+  const handleConnect = () => connect();
+  const handleDisconnect = () => disconnect();
 
   const statusText = activePublicKey
     ? `${truncateKey(activePublicKey)}`
@@ -103,7 +103,10 @@ function App() {
       <Row>
         Connected Account: {statusText}{' '}
         <Button variant="contained" onClick={handleConnect}>
-          {connectButtonText}
+          Connect
+        </Button>
+        <Button variant="contained" onClick={handleDisconnect}>
+          Disconnect
         </Button>
         <Button
           disabled={!isConnected}

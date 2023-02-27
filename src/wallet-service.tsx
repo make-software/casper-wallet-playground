@@ -35,13 +35,10 @@ export let casperService = new CasperServiceByJsonRPC(GRPC_URL);
 
 type WalletService = {
   logs: [string, object][];
+  log: (msg: string, payload?: any) => void;
   activePublicKey: string | null;
   connect: () => Promise<boolean>;
-  disconnect: () => Promise<boolean>;
   switchAccount: () => Promise<boolean>;
-  isConnected: () => Promise<boolean>;
-  getActivePublicKey: () => Promise<string | undefined>;
-  getVersion: () => Promise<string>;
   sign: (
     deployJson: string,
     accountPublicKey: string
@@ -54,6 +51,10 @@ type WalletService = {
   ) => Promise<
     { cancelled: true } | { cancelled: false; signature: Uint8Array }
   >;
+  disconnect: () => Promise<boolean>;
+  isConnected: () => Promise<boolean>;
+  getActivePublicKey: () => Promise<string | undefined>;
+  getVersion: () => Promise<string>;
 };
 
 export const walletServiceContext = createContext<WalletService>({} as any);
@@ -112,6 +113,57 @@ export const WalletServiceProvider = props => {
       return;
     }
 
+    const handleConnected = (event: any) => {
+      log('event:connected', event.detail);
+      try {
+        const action: CasperWalletState = JSON.parse(event.detail);
+        if (action.activeKey) {
+          setActivePublicKey(action.activeKey);
+        }
+      } catch (err) {
+        handleError(err);
+      }
+    };
+
+    const handleActiveKeyChanged = (event: any) => {
+      log('event:activeKeyChanged', event.detail);
+      try {
+        const state: CasperWalletState = JSON.parse(event.detail);
+        if (state.activeKey) {
+          setActivePublicKey(state.activeKey);
+        } else {
+          setActivePublicKey(null);
+        }
+      } catch (err) {
+        handleError(err);
+      }
+    };
+
+    const handleDisconnected = (event: any) => {
+      log('event:disconnected', event.detail);
+      try {
+        if (activePublicKey) {
+          setActivePublicKey(null);
+        }
+      } catch (err) {
+        handleError(err);
+      }
+    };
+
+    const handleTabChanged = (event: any) => {
+      log('event:tabChanged', event.detail);
+      try {
+        const action: CasperWalletState = JSON.parse(event.detail);
+        if (action.activeKey) {
+          setActivePublicKey(action.activeKey);
+        } else {
+          setActivePublicKey(null);
+        }
+      } catch (err) {
+        handleError(err);
+      }
+    };
+
     const handleLocked = (event: any) => {
       log('event:locked', event.detail);
       try {
@@ -136,118 +188,58 @@ export const WalletServiceProvider = props => {
       }
     };
 
-    const handleTabChanged = (event: any) => {
-      log('event:tabChanged', event.detail);
-      try {
-        const action: CasperWalletState = JSON.parse(event.detail);
-        if (action.activeKey) {
-          setActivePublicKey(action.activeKey);
-        } else {
-          setActivePublicKey(null);
-        }
-      } catch (err) {
-        handleError(err);
-      }
-    };
-
-    const handleConnected = (event: any) => {
-      log('event:connected', event.detail);
-      try {
-        const action: CasperWalletState = JSON.parse(event.detail);
-        if (action.activeKey) {
-          setActivePublicKey(action.activeKey);
-        }
-      } catch (err) {
-        handleError(err);
-      }
-    };
-
-    const handleDisconnected = (event: any) => {
-      log('event:disconnected', event.detail);
-      try {
-        if (activePublicKey) {
-          setActivePublicKey(null);
-        }
-      } catch (err) {
-        handleError(err);
-      }
-    };
-
-    const handleActiveKeyChanged = (event: any) => {
-      log('event:activeKeyChanged', event.detail);
-      try {
-        const state: CasperWalletState = JSON.parse(event.detail);
-        if (state.activeKey) {
-          setActivePublicKey(state.activeKey);
-        } else {
-          setActivePublicKey(null);
-        }
-      } catch (err) {
-        handleError(err);
-      }
-    };
-
     // subscribe to signer events
-    window.addEventListener(CasperWalletEventTypes.Locked, handleLocked);
-    window.addEventListener(CasperWalletEventTypes.Unlocked, handleUnlocked);
-    window.addEventListener(
-      CasperWalletEventTypes.TabChanged,
-      handleTabChanged
-    );
     window.addEventListener(CasperWalletEventTypes.Connected, handleConnected);
+    window.addEventListener(
+      CasperWalletEventTypes.ActiveKeyChanged,
+      handleActiveKeyChanged
+    );
     window.addEventListener(
       CasperWalletEventTypes.Disconnected,
       handleDisconnected
     );
     window.addEventListener(
-      CasperWalletEventTypes.ActiveKeyChanged,
-      handleActiveKeyChanged
+      CasperWalletEventTypes.TabChanged,
+      handleTabChanged
     );
+    window.addEventListener(CasperWalletEventTypes.Locked, handleLocked);
+    window.addEventListener(CasperWalletEventTypes.Unlocked, handleUnlocked);
 
     return () => {
-      window.removeEventListener(CasperWalletEventTypes.Locked, handleLocked);
-      window.removeEventListener(
-        CasperWalletEventTypes.Unlocked,
-        handleUnlocked
-      );
-      window.removeEventListener(
-        CasperWalletEventTypes.TabChanged,
-        handleTabChanged
-      );
       window.removeEventListener(
         CasperWalletEventTypes.Connected,
         handleConnected
+      );
+      window.removeEventListener(
+        CasperWalletEventTypes.ActiveKeyChanged,
+        handleActiveKeyChanged
       );
       window.removeEventListener(
         CasperWalletEventTypes.Disconnected,
         handleDisconnected
       );
       window.removeEventListener(
-        CasperWalletEventTypes.ActiveKeyChanged,
-        handleActiveKeyChanged
+        CasperWalletEventTypes.TabChanged,
+        handleTabChanged
+      );
+      window.removeEventListener(CasperWalletEventTypes.Locked, handleLocked);
+      window.removeEventListener(
+        CasperWalletEventTypes.Unlocked,
+        handleUnlocked
       );
     };
   }, [activePublicKey, setActivePublicKey, extensionLoaded]);
 
   const connect = async () => {
-    return getCasperWalletInstance().requestConnection();
-  };
-
-  const disconnect = () => {
-    setActivePublicKey(null);
-    return getCasperWalletInstance().disconnectFromSite();
+    return getCasperWalletInstance()
+      .requestConnection()
+      .then(res => log(`Connected response: ${res}`));
   };
 
   const switchAccount = () => {
-    return getCasperWalletInstance().requestSwitchAccount();
-  };
-
-  const isConnected = async () => {
-    return getCasperWalletInstance().isConnected();
-  };
-
-  const getActivePublicKey = async () => {
-    return getCasperWalletInstance().getActivePublicKey();
+    return getCasperWalletInstance()
+      .requestSwitchAccount()
+      .then(res => log(`Switch response: ${res}`));
   };
 
   const sign = async (deployJson: string, accountPublicKey: string) => {
@@ -258,16 +250,32 @@ export const WalletServiceProvider = props => {
     return getCasperWalletInstance().signMessage(message, accountPublicKey);
   };
 
+  const disconnect = () => {
+    setActivePublicKey(null);
+    return getCasperWalletInstance()
+      .disconnectFromSite()
+      .then(res => log(`Disconnected response: ${res}`));
+  };
+
+  const isConnected = async () => {
+    return getCasperWalletInstance().isConnected();
+  };
+
+  const getActivePublicKey = async () => {
+    return getCasperWalletInstance().getActivePublicKey();
+  };
+
   const contextProps: WalletService = {
     logs,
+    log,
     activePublicKey: activePublicKey,
     connect: connect,
-    disconnect: disconnect,
     switchAccount: switchAccount,
-    isConnected: isConnected,
-    getActivePublicKey: getActivePublicKey,
     sign: sign,
     signMessage: signMessage,
+    disconnect: disconnect,
+    isConnected: isConnected,
+    getActivePublicKey: getActivePublicKey,
     getVersion: getCasperWalletInstance().getVersion
   };
 
