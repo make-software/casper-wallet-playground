@@ -4,15 +4,18 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { WalletServiceProvider } from './wallet-service';
+import { ErrorBoundary } from './ErrorBoundary';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 root.render(
   <React.StrictMode>
-    <WalletServiceProvider>
-      <App />
-    </WalletServiceProvider>
+    <ErrorBoundary>
+      <WalletServiceProvider>
+        <App />
+      </WalletServiceProvider>
+    </ErrorBoundary>
   </React.StrictMode>
 );
 
