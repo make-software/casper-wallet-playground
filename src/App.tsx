@@ -94,7 +94,12 @@ function App() {
   const statusText = activePublicKey
     ? `${truncateKey(activePublicKey)}`
     : 'Disconnected';
+  
+  const signingKey =
+    activePublicKey ||
+    '0106ca7c39cd272dbf21a86eeb3b36b7c26e2e9b94af64292419f7862936bca2ca';
 
+  
   return (
     <Container>
       <LogoTitleContainer style={{ fontSize: '2rem' }}>
@@ -142,9 +147,7 @@ function App() {
         </Button>
       </Row>
       <Row>
-        {activePublicKey == null ? (
-          'CONNECT TO SEE MORE ACTIONS'
-        ) : (
+        {
           <div>
             <div style={{ textAlign: 'center' }}>
               SIGNATURE REQUEST SCENARIOS
@@ -153,12 +156,12 @@ function App() {
               variant="text"
               onClick={() => {
                 const deploy = makeNativeTransferDeploy(
-                  activePublicKey,
+                  signingKey,
                   '0106ca7c39cd272dbf21a86eeb3b36b7c26e2e9b94af64292419f7862936bca2ca',
                   '2500000000',
                   '1234'
                 );
-                handleSignDeploy(activePublicKey, deploy);
+                handleSignDeploy(signingKey, deploy);
               }}
             >
               Transfer
@@ -168,12 +171,12 @@ function App() {
               onClick={() => {
                 const deploy = makeAuctionManagerDeploy(
                   AuctionManagerEntryPoint.delegate,
-                  activePublicKey,
+                  signingKey,
                   `0106ca7c39cd272dbf21a86eeb3b36b7c26e2e9b94af64292419f7862936bca2ca`, // MAKE Stake 10% [testnet],
                   null,
                   '2500000000'
                 );
-                handleSignDeploy(activePublicKey, deploy);
+                handleSignDeploy(signingKey, deploy);
               }}
             >
               Delegate
@@ -183,12 +186,12 @@ function App() {
               onClick={() => {
                 const deploy = makeAuctionManagerDeploy(
                   AuctionManagerEntryPoint.undelegate,
-                  activePublicKey,
+                  signingKey,
                   `0106ca7c39cd272dbf21a86eeb3b36b7c26e2e9b94af64292419f7862936bca2ca`, // MAKE Stake 10% [testnet],
                   null,
                   '2500000000'
                 );
-                handleSignDeploy(activePublicKey, deploy);
+                handleSignDeploy(signingKey, deploy);
               }}
             >
               Undelegate
@@ -198,12 +201,12 @@ function App() {
               onClick={() => {
                 const deploy = makeAuctionManagerDeploy(
                   AuctionManagerEntryPoint.redelegate,
-                  activePublicKey,
+                  signingKey,
                   `0106ca7c39cd272dbf21a86eeb3b36b7c26e2e9b94af64292419f7862936bca2ca`, // MAKE Stake 10% [testnet],
                   '017d96b9a63abcb61c870a4f55187a0a7ac24096bdb5fc585c12a686a4d892009e', // MAKE Stake 2
                   '2500000000'
                 );
-                handleSignDeploy(activePublicKey, deploy);
+                handleSignDeploy(signingKey, deploy);
               }}
             >
               Redelegate
@@ -216,7 +219,7 @@ function App() {
                 );
                 const deploy = DeployUtil.deployFromJson(deployJson);
                 if (deploy.ok) {
-                  handleSignDeploy(activePublicKey, deploy.val);
+                  handleSignDeploy(signingKey, deploy.val);
                 } else {
                   alert(deploy.val);
                 }
@@ -229,7 +232,7 @@ function App() {
               onClick={() => {
                 const message =
                   'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.';
-                handleSignMessage(message, activePublicKey);
+                handleSignMessage(message, signingKey);
               }}
             >
               Message
@@ -240,13 +243,13 @@ function App() {
               variant="text"
               onClick={() => {
                 const deploy = makeNativeTransferDeploy(
-                  activePublicKey,
+                  signingKey,
                   // recipientPublicKey was corrupted by changing last `c` char to `C`
                   '0106ca7c39cd272dbf21a86eeb3b36b7c26e2e9b94af64292419f7862936bca2Ca',
                   '2500000000',
                   '1234'
                 );
-                handleSignDeploy(activePublicKey, deploy);
+                handleSignDeploy(signingKey, deploy);
               }}
             >
               Invalid Checksum
@@ -268,7 +271,7 @@ function App() {
               Not approved
             </Button>
           </div>
-        )}
+        }
       </Row>
       <div>
         {logs.map(([log, payload], index) => (
