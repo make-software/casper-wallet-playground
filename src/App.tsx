@@ -36,10 +36,12 @@ function App() {
     activePublicKey,
     connect,
     disconnect,
+    sign,
+    signMessage,
     switchAccount,
     getVersion,
-    sign,
-    signMessage
+    isSiteConnected,
+    getActivePublicKey
   } = useWalletService();
 
   const isConnected = Boolean(activePublicKey);
@@ -108,11 +110,7 @@ function App() {
         <Button variant="contained" onClick={handleDisconnect}>
           Disconnect
         </Button>
-        <Button
-          disabled={!isConnected}
-          variant="contained"
-          onClick={switchAccount}
-        >
+        <Button variant="contained" onClick={switchAccount}>
           Switch
         </Button>
         <Button
@@ -123,6 +121,24 @@ function App() {
           }}
         >
           Show Version
+        </Button>
+        <Button
+          variant="contained"
+          onClick={async () => {
+            const result = await isSiteConnected();
+            alert(result);
+          }}
+        >
+          Is Connected
+        </Button>
+        <Button
+          variant="contained"
+          onClick={async () => {
+            const result = await getActivePublicKey();
+            alert(result);
+          }}
+        >
+          Get Active Key
         </Button>
       </Row>
       <Row>

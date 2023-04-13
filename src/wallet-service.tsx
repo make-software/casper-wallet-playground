@@ -52,7 +52,7 @@ type WalletService = {
     { cancelled: true } | { cancelled: false; signature: Uint8Array }
   >;
   disconnect: () => Promise<boolean>;
-  isConnected: () => Promise<boolean>;
+  isSiteConnected: () => Promise<boolean>;
   getActivePublicKey: () => Promise<string | undefined>;
   getVersion: () => Promise<string>;
 };
@@ -257,7 +257,7 @@ export const WalletServiceProvider = props => {
       .then(res => log(`Disconnected response: ${res}`));
   };
 
-  const isConnected = async () => {
+  const isSiteConnected = async () => {
     return getCasperWalletInstance().isConnected();
   };
 
@@ -274,7 +274,7 @@ export const WalletServiceProvider = props => {
     sign: sign,
     signMessage: signMessage,
     disconnect: disconnect,
-    isConnected: isConnected,
+    isSiteConnected: isSiteConnected,
     getActivePublicKey: getActivePublicKey,
     getVersion: getCasperWalletInstance().getVersion
   };
