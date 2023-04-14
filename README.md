@@ -4,7 +4,7 @@
 
 ## Introduction
 
-Casper Wallet Playground App is a sample project designed to help developers understand how to integrate Casper Wallet with third-party web applications. This repository serves as a reference implementation and learning resource for developers interested in the Casper Wallet ecosystem.
+Casper Wallet Playground App is a sample project designed to help developers understand how to integrate [Casper Wallet](https://github.com/make-software/casper-wallet) with third-party web applications. This repository serves as a reference implementation and learning resource for developers interested in the Casper Network ecosystem.
 
 Please be aware that the app is only for development and testing, and not for direct usage in production environments, as the name suggests.
 
