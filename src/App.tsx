@@ -94,12 +94,11 @@ function App() {
   const statusText = activePublicKey
     ? `${truncateKey(activePublicKey)}`
     : 'Disconnected';
-  
+
   const signingKey =
     activePublicKey ||
     '0106ca7c39cd272dbf21a86eeb3b36b7c26e2e9b94af64292419f7862936bca2ca';
 
-  
   return (
     <Container>
       <LogoTitleContainer style={{ fontSize: '2rem' }}>
@@ -130,8 +129,13 @@ function App() {
         <Button
           variant="contained"
           onClick={async () => {
-            const result = await isSiteConnected();
-            alert(result);
+            isSiteConnected()
+              .then(res => {
+                alert(res);
+              })
+              .catch(err => {
+                alert(err.message);
+              });
           }}
         >
           Is Connected
@@ -139,8 +143,13 @@ function App() {
         <Button
           variant="contained"
           onClick={async () => {
-            const result = await getActivePublicKey();
-            alert(result);
+            getActivePublicKey()
+              .then((res: any) => {
+                alert(res);
+              })
+              .catch(err => {
+                alert(err.message);
+              });
           }}
         >
           Get Active Key
