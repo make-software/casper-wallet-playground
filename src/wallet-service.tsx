@@ -107,6 +107,21 @@ export const WalletServiceProvider = props => {
     );
   }, []);
 
+  // updated active publicKey when wallet unlocked
+  useEffect(() => {
+    getActivePublicKey()
+      .then(key => {
+        setActivePublicKey(key);
+        console.log(key);
+      })
+      .catch(err => {
+        if (err.code === 2) {
+          setActivePublicKey(null);
+        }
+        // no op
+      });
+  }, [extensionLoaded,setActivePublicKey]);
+
   // WALLET SUBSCRIPTIONS
   useEffect(() => {
     if (extensionLoaded === false) {
