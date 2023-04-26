@@ -44,7 +44,7 @@ function App() {
     getActivePublicKey
   } = useWalletService();
 
-  const isConnected = Boolean(activePublicKey);
+  // const isConnected = Boolean(activePublicKey);
 
   const handleSignDeploy = (
     accountPublicKey: string,

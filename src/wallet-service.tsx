@@ -265,6 +265,10 @@ export const WalletServiceProvider = props => {
     return getCasperWalletInstance().getActivePublicKey();
   };
 
+  const getVersion = async () => {
+    return getCasperWalletInstance().getVersion();
+  };
+
   const contextProps: WalletService = {
     logs,
     log,
@@ -276,7 +280,7 @@ export const WalletServiceProvider = props => {
     disconnect: disconnect,
     isSiteConnected: isSiteConnected,
     getActivePublicKey: getActivePublicKey,
-    getVersion: getCasperWalletInstance().getVersion
+    getVersion: getVersion
   };
 
   return <WalletServiceContextProvider value={contextProps} {...props} />;
