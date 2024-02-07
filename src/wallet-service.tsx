@@ -43,7 +43,7 @@ type WalletService = {
     deployJson: string,
     accountPublicKey: string
   ) => Promise<
-    { cancelled: true } | { cancelled: true; message: string } | { cancelled: false; signature: Uint8Array }
+    { cancelled: true; message?: string } | { cancelled: false; signature: Uint8Array }
   >;
   signMessage: (
     message: string,

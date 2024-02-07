@@ -95,7 +95,7 @@ function App() {
             const deployJson = DeployUtil.deployToJson(signedDeploy);
 
             sign(JSON.stringify(deployJson), accountPublicKey).then(res => {
-              if ('message' in res) {
+              if (res.cancelled) {
                 alert(res.message)
               }
             })
