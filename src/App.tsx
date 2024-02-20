@@ -73,6 +73,45 @@ function App() {
     }
   };
 
+  const handleMultiSignDeploy = async (
+    accountPublicKey: string,
+    deploy: DeployUtil.Deploy
+  ) => {
+    if (accountPublicKey) {
+      const deployJson = DeployUtil.deployToJson(deploy);
+      // console.log('deployJson', JSON.stringify(deployJson));
+
+      sign(JSON.stringify(deployJson), accountPublicKey)
+        .then(res => {
+          if (res.cancelled) {
+            alert('Sign cancelled');
+          } else {
+            const signedDeploy = DeployUtil.setSignature(
+              deploy,
+              res.signature,
+              CLPublicKey.fromHex(accountPublicKey)
+            );
+
+            const deployJson = DeployUtil.deployToJson(signedDeploy);
+
+            sign(JSON.stringify(deployJson), accountPublicKey).then(res => {
+              if (res.cancelled) {
+                alert(res.message)
+              }
+            })
+              .catch(err => {
+                alert('Error: ' + err);
+                throw err;
+              });
+          }
+        })
+        .catch(err => {
+          alert('Error: ' + err);
+          throw err;
+        });
+    }
+  };
+
   const handleSignMessage = (message: string, accountPublicKey: string) => {
     signMessage(message, accountPublicKey)
       .then(res => {
@@ -246,23 +285,22 @@ function App() {
             >
               Message
             </Button>
-
-            <div style={{ textAlign: 'center' }}>SIGNATURE REQUEST ERRORS</div>
             <Button
               variant="text"
               onClick={() => {
                 const deploy = makeNativeTransferDeploy(
                   signingKey,
-                  // recipientPublicKey was corrupted by changing last `c` char to `C`
-                  '0106ca7c39cd272dbf21a86eeb3b36b7c26e2e9b94af64292419f7862936bca2Ca',
+                  '0106ca7c39cd272dbf21a86eeb3b36b7c26e2e9b94af64292419f7862936bca2ca',
                   '2500000000',
                   '1234'
                 );
-                handleSignDeploy(signingKey, deploy);
+                handleMultiSignDeploy(signingKey, deploy);
               }}
             >
-              Invalid Checksum
+              Sign already signed deploy
             </Button>
+
+            <div style={{ textAlign: 'center' }}>SIGNATURE REQUEST ERRORS</div>
             <Button
               variant="text"
               onClick={() => {
