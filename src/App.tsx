@@ -2,17 +2,14 @@ import React from 'react';
 import logo from './logo.svg';
 import { Button } from '@mui/material';
 import styled from '@emotion/styled';
-import { CLPublicKey, DeployUtil, TransactionUtil } from 'casper-js-sdk';
-
 import { useWalletService } from './wallet-service';
 import { truncateKey } from './utils';
 import {
   AuctionManagerEntryPoint,
   makeAuctionManagerDeploy,
-  makeAuctionManagerTransaction,
-  makeNativeTranferTransaction,
   makeNativeTransferDeploy
 } from './deploy-utils';
+import { CLPublicKey, DeployUtil } from 'casper-js-sdk';
 
 const Container = styled('div')({
   backgroundColor: '#282c34',
@@ -64,37 +61,9 @@ function App() {
             const signedDeploy = DeployUtil.setSignature(
               deploy,
               res.signature,
-              CLPublicKey.fromFormattedString(accountPublicKey)
+              CLPublicKey.fromHex(accountPublicKey)
             );
             alert('Sign successful: ' + JSON.stringify(signedDeploy, null, 2));
-          }
-        })
-        .catch(err => {
-          alert('Error: ' + err);
-          throw err;
-        });
-    }
-  };
-
-  const handleSignTransaction = (
-    accountPublicKey: string,
-    transaction: TransactionUtil.Transaction
-  ) => {
-    if (accountPublicKey) {
-      const transactionJSON = TransactionUtil.transactionToJson(transaction);
-
-      sign(JSON.stringify(transactionJSON), accountPublicKey)
-        .then(res => {
-          console.log(`RESPONSE1: ${JSON.stringify(res)}`);
-          if (res.cancelled) {
-            alert('Sign cancelled');
-          } else {
-            console.log(`RESPONSE: ${JSON.stringify(res)}`);
-            // const signedTransaction = TransactionUtil.signTransaction(
-            //   transaction,
-            //   res.signature
-            // );
-            alert('Sign successful:');
           }
         })
         .catch(err => {
@@ -120,17 +89,16 @@ function App() {
             const signedDeploy = DeployUtil.setSignature(
               deploy,
               res.signature,
-              CLPublicKey.fromFormattedString(accountPublicKey)
+              CLPublicKey.fromHex(accountPublicKey)
             );
 
             const deployJson = DeployUtil.deployToJson(signedDeploy);
 
-            sign(JSON.stringify(deployJson), accountPublicKey)
-              .then(res => {
-                if (res.cancelled) {
-                  alert(res.message);
-                }
-              })
+            sign(JSON.stringify(deployJson), accountPublicKey).then(res => {
+              if (res.cancelled) {
+                alert(res.message)
+              }
+            })
               .catch(err => {
                 alert('Error: ' + err);
                 throw err;
@@ -348,67 +316,6 @@ function App() {
               }}
             >
               Not approved
-            </Button>
-
-            <div style={{ textAlign: 'center' }}>CONDOR REQUESTS</div>
-            <Button
-              variant="text"
-              onClick={() => {
-                const transaction = makeNativeTranferTransaction(
-                  signingKey,
-                  '0106ca7c39cd272dbf21a86eeb3b36b7c26e2e9b94af64292419f7862936bca2ca',
-                  '2500000000',
-                  '1234'
-                );
-                handleSignTransaction(signingKey, transaction);
-              }}
-            >
-              TRANSFER
-            </Button>
-            <Button
-              variant="text"
-              onClick={() => {
-                const transaction = makeAuctionManagerTransaction(
-                  AuctionManagerEntryPoint.delegate,
-                  signingKey,
-                  `0106ca7c39cd272dbf21a86eeb3b36b7c26e2e9b94af64292419f7862936bca2ca`, // MAKE Stake 10% [testnet],
-                  null,
-                  '2500000000'
-                );
-                handleSignTransaction(signingKey, transaction);
-              }}
-            >
-              DELEGATE
-            </Button>
-            <Button
-              variant="text"
-              onClick={() => {
-                const transaction = makeAuctionManagerTransaction(
-                  AuctionManagerEntryPoint.undelegate,
-                  signingKey,
-                  `0106ca7c39cd272dbf21a86eeb3b36b7c26e2e9b94af64292419f7862936bca2ca`, // MAKE Stake 10% [testnet],
-                  null,
-                  '2500000000'
-                );
-                handleSignTransaction(signingKey, transaction);
-              }}
-            >
-              UNDELEGATE
-            </Button>
-            <Button
-              variant="text"
-              onClick={() => {
-                const transaction = makeAuctionManagerTransaction(
-                  AuctionManagerEntryPoint.redelegate,
-                  signingKey,
-                  `0106ca7c39cd272dbf21a86eeb3b36b7c26e2e9b94af64292419f7862936bca2ca`, // MAKE Stake 10% [testnet],
-                  '017d96b9a63abcb61c870a4f55187a0a7ac24096bdb5fc585c12a686a4d892009e', // MAKE Stake 2
-                  '2500000000'
-                );
-                handleSignTransaction(signingKey, transaction);
-              }}
-            >
-              REDELEGATE
             </Button>
           </div>
         }
