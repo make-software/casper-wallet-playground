@@ -43,8 +43,7 @@ type WalletService = {
     deployJson: string,
     accountPublicKey: string
   ) => Promise<
-    | { cancelled: true; message?: string }
-    | { cancelled: false; signature: Uint8Array }
+    { cancelled: true; message?: string } | { cancelled: false; signature: Uint8Array }
   >;
   signMessage: (
     message: string,
@@ -121,7 +120,7 @@ export const WalletServiceProvider = props => {
         }
         // no op
       });
-  }, [extensionLoaded, setActivePublicKey]);
+  }, [extensionLoaded,setActivePublicKey]);
 
   // WALLET SUBSCRIPTIONS
   useEffect(() => {
