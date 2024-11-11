@@ -1,4 +1,3 @@
-import { CasperServiceByJsonRPC } from 'casper-js-sdk';
 import React, {
   createContext,
   useCallback,
@@ -30,9 +29,6 @@ type WalletStorageState = {
   publicKey: string | null;
 };
 
-const GRPC_URL = 'https://casper-node-proxy.dev.make.services/rpc';
-export let casperService = new CasperServiceByJsonRPC(GRPC_URL);
-
 type WalletService = {
   logs: [string, object][];
   log: (msg: string, payload?: any) => void;
@@ -43,7 +39,8 @@ type WalletService = {
     deployJson: string,
     accountPublicKey: string
   ) => Promise<
-    { cancelled: true; message?: string } | { cancelled: false; signature: Uint8Array }
+    | { cancelled: true; message?: string }
+    | { cancelled: false; signature: Uint8Array }
   >;
   signMessage: (
     message: string,
@@ -120,7 +117,7 @@ export const WalletServiceProvider = props => {
         }
         // no op
       });
-  }, [extensionLoaded,setActivePublicKey]);
+  }, [extensionLoaded, setActivePublicKey]);
 
   // WALLET SUBSCRIPTIONS
   useEffect(() => {

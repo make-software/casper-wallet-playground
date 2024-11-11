@@ -1,9 +1,14 @@
 import {
-  CLPublicKey,
-  CLValueBuilder,
-  decodeBase16,
-  DeployUtil,
-  RuntimeArgs
+  Args,
+  CLValue,
+  CLValueUInt512,
+  ContractHash,
+  Deploy,
+  DeployHeader,
+  ExecutableDeployItem,
+  PublicKey,
+  StoredContractByHash,
+  TransferDeployItem
 } from 'casper-js-sdk';
 
 const config = {
@@ -43,37 +48,41 @@ export const makeAuctionManagerDeploy = (
   redelegateValidatorPublicKeyHex: string | null,
   amountMotes: string
 ) => {
-  const delegatorPublicKey = CLPublicKey.fromHex(delegatorPublicKeyHex);
-  const validatorPublicKey = CLPublicKey.fromHex(validatorPublicKeyHex);
+  const delegatorPublicKey = PublicKey.fromHex(delegatorPublicKeyHex);
+  const validatorPublicKey = PublicKey.fromHex(validatorPublicKeyHex);
   const newValidatorPublicKey =
     redelegateValidatorPublicKeyHex &&
-    CLPublicKey.fromHex(redelegateValidatorPublicKeyHex);
+    PublicKey.fromHex(redelegateValidatorPublicKeyHex);
+  const executableDeployItem = new ExecutableDeployItem();
+  const deployCost = getAuctionManagerDeployCost(contractEntryPoint);
+  const payment = ExecutableDeployItem.standardPayment(deployCost);
 
-  const deployParams = new DeployUtil.DeployParams(
-    delegatorPublicKey,
-    config.network_name
-  );
-
-  const args = RuntimeArgs.fromMap({
-    delegator: delegatorPublicKey,
-    validator: validatorPublicKey,
-    amount: CLValueBuilder.u512(amountMotes),
+  const args = Args.fromMap({
+    delegator: CLValue.newCLPublicKey(delegatorPublicKey),
+    validator: CLValue.newCLPublicKey(validatorPublicKey),
+    amount: CLValueUInt512.newCLUInt512(amountMotes),
     ...(newValidatorPublicKey && {
-      new_validator: newValidatorPublicKey
+      new_validator: CLValue.newCLPublicKey(newValidatorPublicKey)
     })
   });
 
-  const session = DeployUtil.ExecutableDeployItem.newStoredContractByHash(
-    decodeBase16(config.auction_manager_contract_hash),
+  const deployHeader = new DeployHeader(
+    config.network_name,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    delegatorPublicKey,
+    undefined
+  );
+
+  executableDeployItem.storedContractByHash = new StoredContractByHash(
+    ContractHash.newContract(config.auction_manager_contract_hash),
     contractEntryPoint,
     args
   );
 
-  const deployCost = getAuctionManagerDeployCost(contractEntryPoint);
-
-  const payment = DeployUtil.standardPayment(deployCost);
-
-  return DeployUtil.makeDeploy(deployParams, session, payment);
+  return Deploy.fromHeaderAndItems(deployHeader, payment, executableDeployItem);
 };
 
 export const makeNativeTransferDeploy = (
@@ -82,22 +91,28 @@ export const makeNativeTransferDeploy = (
   amountMotes: string,
   transferIdMemo: string
 ) => {
-  const senderPublicKey = CLPublicKey.fromHex(senderPublicKeyHex);
-  const recipientPublicKey = CLPublicKey.fromHex(recipientPublicKeyHex);
+  const senderPublicKey = PublicKey.fromHex(senderPublicKeyHex);
+  const recipientPublicKey = PublicKey.fromHex(recipientPublicKeyHex);
+  const executableDeployItem = new ExecutableDeployItem();
 
-  const deployParams = new DeployUtil.DeployParams(
+  const deployHeader = new DeployHeader(
+    config.network_name,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
     senderPublicKey,
-    config.network_name
+    undefined
   );
 
-  const session = DeployUtil.ExecutableDeployItem.newTransfer(
+  executableDeployItem.transfer = TransferDeployItem.newTransfer(
     amountMotes,
     recipientPublicKey,
     undefined,
     transferIdMemo
   );
 
-  const payment = DeployUtil.standardPayment(config.transfer_cost);
+  const payment = ExecutableDeployItem.standardPayment(config.transfer_cost);
 
-  return DeployUtil.makeDeploy(deployParams, session, payment);
+  return Deploy.fromHeaderAndItems(deployHeader, payment, executableDeployItem);
 };
