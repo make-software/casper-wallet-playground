@@ -1,4 +1,3 @@
-import { CasperServiceByJsonRPC } from 'casper-js-sdk';
 import React, {
   createContext,
   useCallback,
@@ -29,9 +28,6 @@ const WALLET_STORAGE_KEY = 'cspr-redux-wallet-sync';
 type WalletStorageState = {
   publicKey: string | null;
 };
-
-const GRPC_URL = 'https://casper-node-proxy.dev.make.services/rpc';
-export let casperService = new CasperServiceByJsonRPC(GRPC_URL);
 
 type WalletService = {
   logs: [string, object][];
