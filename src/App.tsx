@@ -49,7 +49,8 @@ function App() {
     switchAccount,
     getVersion,
     isSiteConnected,
-    getActivePublicKey
+    getActivePublicKey,
+    getActiveKeySupports,
   } = useWalletService();
 
   // const isConnected = Boolean(activePublicKey);
@@ -257,6 +258,20 @@ function App() {
           }}
         >
           Get Active Key
+        </Button>
+        <Button
+          variant='contained'
+          onClick={async () => {
+            getActiveKeySupports()
+              .then((res: any) => {
+                alert(res);
+              })
+              .catch(err => {
+                alert(err.message);
+              });
+          }}
+        >
+          Get Active Key Supports
         </Button>
       </Row>
       <Row>
