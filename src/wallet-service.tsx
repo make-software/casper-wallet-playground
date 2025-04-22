@@ -50,6 +50,7 @@ type WalletService = {
   disconnect: () => Promise<boolean>;
   isSiteConnected: () => Promise<boolean>;
   getActivePublicKey: () => Promise<string | undefined>;
+  getActiveKeySupports: () => Promise<string[] | undefined>;
   getVersion: () => Promise<string>;
 };
 
@@ -150,6 +151,10 @@ export const WalletServiceProvider = props => {
       }
     };
 
+    const handleActiveKeySupportsChanged = (event: any) => {
+      log('event:ActiveKeySupportsChanged', event.detail);
+    };
+
     const handleDisconnected = (event: any) => {
       log('event:disconnected', event.detail);
       try {
@@ -206,6 +211,10 @@ export const WalletServiceProvider = props => {
       handleActiveKeyChanged
     );
     window.addEventListener(
+      CasperWalletEventTypes.ActiveKeySupportsChanged,
+      handleActiveKeySupportsChanged,
+    );
+    window.addEventListener(
       CasperWalletEventTypes.Disconnected,
       handleDisconnected
     );
@@ -224,6 +233,10 @@ export const WalletServiceProvider = props => {
       window.removeEventListener(
         CasperWalletEventTypes.ActiveKeyChanged,
         handleActiveKeyChanged
+      );
+      window.removeEventListener(
+        CasperWalletEventTypes.ActiveKeySupportsChanged,
+        handleActiveKeySupportsChanged
       );
       window.removeEventListener(
         CasperWalletEventTypes.Disconnected,
@@ -276,6 +289,10 @@ export const WalletServiceProvider = props => {
     return getCasperWalletInstance().getActivePublicKey();
   };
 
+  const getActiveKeySupports = async () => {
+    return getCasperWalletInstance().getActivePublicKeySupports();
+  };
+
   const getVersion = async () => {
     return getCasperWalletInstance().getVersion();
   };
@@ -291,7 +308,8 @@ export const WalletServiceProvider = props => {
     disconnect: disconnect,
     isSiteConnected: isSiteConnected,
     getActivePublicKey: getActivePublicKey,
-    getVersion: getVersion
+    getVersion: getVersion,
+    getActiveKeySupports,
   };
 
   return <WalletServiceContextProvider value={contextProps} {...props} />;
