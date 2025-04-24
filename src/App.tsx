@@ -38,6 +38,10 @@ const Row = styled(Container)({
   flexDirection: 'row'
 });
 
+const RowWrap = styled(Row)({
+  flexWrap: 'wrap'
+});
+
 function App() {
   const {
     logs,
@@ -211,7 +215,7 @@ function App() {
         Casper Wallet Playground
       </LogoTitleContainer>
 
-      <Row>
+      <RowWrap>
         Connected Account: {statusText}{' '}
         <Button variant='contained' onClick={handleConnect}>
           Connect
@@ -273,7 +277,7 @@ function App() {
         >
           Get Active Key Supports
         </Button>
-      </Row>
+      </RowWrap>
       <Row>
         {
           <div>
