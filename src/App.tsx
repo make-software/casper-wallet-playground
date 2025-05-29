@@ -3,20 +3,23 @@ import logo from './logo.svg';
 import { Button } from '@mui/material';
 import styled from '@emotion/styled';
 import { useWalletService } from './wallet-service';
-import { truncateKey } from './utils';
+import { makeCasperMarketListBuilder, truncateKey } from './utils';
 import {
   Args,
   AuctionManagerEntryPoint, CLTypeUInt256, CLValue,
   ContractCallBuilder,
   Deploy,
   makeAuctionManagerDeploy,
+  makeCep18TransferDeploy,
+  makeCep18TransferTransaction,
   makeCsprTransferDeploy,
   NativeDelegateBuilder,
   NativeRedelegateBuilder,
   NativeTransferBuilder,
   NativeUndelegateBuilder,
   PublicKey,
-  Transaction
+  Transaction,
+  CasperNetworkName,
 } from 'casper-js-sdk';
 
 const Container = styled('div')({
@@ -54,7 +57,7 @@ function App() {
     getVersion,
     isSiteConnected,
     getActivePublicKey,
-    getActiveKeySupports,
+    getActiveKeySupports
   } = useWalletService();
 
   // const isConnected = Boolean(activePublicKey);
@@ -288,7 +291,8 @@ function App() {
               variant='text'
               onClick={() => {
                 const deploy = makeCsprTransferDeploy({
-                  recipientPublicKeyHex: '0106ca7c39cd272dbf21a86eeb3b36b7c26e2e9b94af64292419f7862936bca2ca',
+                  chainName: CasperNetworkName.Testnet,
+                  recipientPublicKeyHex: '020329169b6c9e632fbeca5677fcad1bb48b87cd80500202911b933c16fa1d107e2e',
                   senderPublicKeyHex: signingKey,
                   transferAmount: '2500000000',
                   memo: '1234'
@@ -302,6 +306,7 @@ function App() {
               variant='text'
               onClick={() => {
                 const deploy = makeAuctionManagerDeploy({
+                  chainName: CasperNetworkName.Testnet,
                   contractEntryPoint: AuctionManagerEntryPoint.delegate,
                   amount: '2500000000',
                   delegatorPublicKeyHex: signingKey,
@@ -316,10 +321,11 @@ function App() {
               variant='text'
               onClick={() => {
                 const deploy = makeAuctionManagerDeploy({
+                  chainName: CasperNetworkName.Testnet,
                   contractEntryPoint: AuctionManagerEntryPoint.undelegate,
                   amount: '2500000000',
                   delegatorPublicKeyHex: signingKey,
-                  validatorPublicKeyHex: `0106ca7c39cd272dbf21a86eeb3b36b7c26e2e9b94af64292419f7862936bca2ca`
+                  validatorPublicKeyHex: `017d96b9a63abcb61c870a4f55187a0a7ac24096bdb5fc585c12a686a4d892009e`
                 });
                 handleSignDeploy(signingKey, deploy);
               }}
@@ -330,11 +336,12 @@ function App() {
               variant='text'
               onClick={() => {
                 const deploy = makeAuctionManagerDeploy({
+                  chainName: CasperNetworkName.Testnet,
                   contractEntryPoint: AuctionManagerEntryPoint.redelegate,
                   amount: '2500000000',
                   delegatorPublicKeyHex: signingKey,
-                  validatorPublicKeyHex: `0106ca7c39cd272dbf21a86eeb3b36b7c26e2e9b94af64292419f7862936bca2ca`,
-                  newValidatorPublicKeyHex: '017d96b9a63abcb61c870a4f55187a0a7ac24096bdb5fc585c12a686a4d892009e'
+                  validatorPublicKeyHex: `017d9aa0b86413d7ff9a9169182c53f0bacaa80d34c211adab007ed4876af17077`,
+                  newValidatorPublicKeyHex: '01c8be540a643e6c9df283dd2d2d6be67748f69a3c7bb6cf34471c899b8e858c9a'
                 });
                 handleSignDeploy(signingKey, deploy);
               }}
@@ -344,12 +351,46 @@ function App() {
             <Button
               variant='text'
               onClick={() => {
-                const deployJson = JSON.parse(
-                  '{"deploy":{"approvals":[],"hash":"97035958Ab5E2a1EB187B8239491EaEe7FBB97340684d5442D8F84aCB630aeae","header":{"account":"0111BC2070A9aF0F26F94B8549BfFA5643eAD0bc68EBa3b1833039Cfa2a9a8205d","timestamp":"2022-12-06T21:35:31.194Z","ttl":"30m","dependencies":[],"gas_price":1,"body_hash":"01863FC06867f1E007a3236758a8e9D301dc89662Dc2A9bC042C36561d610ae6","chain_name":"casper-test"},"payment":{"ModuleBytes":{"module_bytes":"","args":[["amount",{"cl_type":"U512","bytes":"0400ca9A3B","parsed":"1000000000"}]]}},"session":{"StoredVersionedContractByHash":{"hash":"6ca070C78D4Eb468b4db4CBC5CaDd815c35E15019a841c137372A88D7e247d1D","version":null,"entry_point":"burn","args":[["owner",{"cl_type":"Key","bytes":"00989ca079a5E446071866331468AB949483162588D57ec13ba6BB051f1E15f8b7","parsed":{"Account":"account-hash-989Ca079A5E446071866331468Ab949483162588d57EC13BA6Bb051f1E15f8b7"}}],["token_ids",{"cl_type":{"List":"U256"},"bytes":"010000000168","parsed":""}]]}}}}'
-                );
-
                 try {
-                  const deploy = Deploy.fromJSON(deployJson);
+                  const tx = new ContractCallBuilder()
+                    .from(PublicKey.fromHex(signingKey))
+                    .byPackageHash('6ca070c78d4eb468b4db4cbc5cadd815c35e15019a841c137372a88d7e247d1d')
+                    .entryPoint('burn')
+                    .runtimeArgs(Args.fromMap({
+                      owner: CLValue.newCLPublicKey(PublicKey.fromHex('0111BC2070A9aF0F26F94B8549BfFA5643eAD0bc68EBa3b1833039Cfa2a9a8205d')),
+                      token_ids: CLValue.newCLList(CLTypeUInt256, [CLValue.newCLUInt256(101)])
+                    }))
+                    .payment(3_000_000_000) // Amount in motes
+                    .chainName(CasperNetworkName.Testnet)
+                    .buildFor1_5();
+
+                  const deploy = tx.getDeploy();
+
+                  if (deploy) {
+                    handleSignDeploy(signingKey, deploy);
+                  } else {
+                    throw new Error('Deploy is null');
+                  }
+                } catch (e) {
+                  alert(e);
+                }
+              }}
+            >
+              NFT
+            </Button>
+            <Button
+              variant='text'
+              onClick={() => {
+                try {
+                  const deploy = makeCep18TransferDeploy({
+                    chainName: CasperNetworkName.Testnet,
+                    recipientPublicKeyHex: '020329169b6c9e632fbeca5677fcad1bb48b87cd80500202911b933c16fa1d107e2e',
+                    senderPublicKeyHex: signingKey,
+                    transferAmount: (0.1 * 10 ** 18).toString(),
+                    paymentAmount: (3 * 10 ** 9).toString(),
+                    contractPackageHash: '7fd113f60890c8ea77daf90880852f544b618c62315bcfd2dd93304c389fa19d'
+                  });
+
                   handleSignDeploy(signingKey, deploy);
 
                 } catch (e) {
@@ -357,7 +398,56 @@ function App() {
                 }
               }}
             >
-              Casper Studio
+              CEP18
+            </Button>
+            <Button
+              variant='text'
+              onClick={() => {
+                try {
+                  const tx = makeCasperMarketListBuilder(signingKey).buildFor1_5();
+
+                  const deploy = tx.getDeploy();
+
+                  if (!deploy) {
+                    throw new Error('Deploy is null');
+                  }
+
+                  handleSignDeploy(signingKey, deploy);
+
+                } catch (e) {
+                  alert(e);
+                }
+              }}
+            >
+              CSPR Market
+            </Button>
+            <Button
+              variant='text'
+              onClick={() => {
+                try {
+                  const tx = new ContractCallBuilder()
+                    .from(PublicKey.fromHex(signingKey))
+                    .byPackageHash('ff9c3c0c447d2e3a79c02e13d048c03f6fac8a911fdc04118cc754c84ef6259e')
+                    .entryPoint('set_associated_keys')
+                    .runtimeArgs(Args.fromMap({}))
+                    .payment(3_000_000_000) // Amount in motes
+                    .chainName(CasperNetworkName.Testnet)
+                    .buildFor1_5();
+
+                  const deploy = tx.getDeploy();
+
+                  if (!deploy) {
+                    throw new Error('Deploy is null');
+                  }
+
+                  handleSignDeploy(signingKey, deploy);
+
+                } catch (e) {
+                  alert(e);
+                }
+              }}
+            >
+              Associated keys
             </Button>
             <Button
               variant='text'
@@ -373,6 +463,7 @@ function App() {
               variant='text'
               onClick={() => {
                 const deploy = makeCsprTransferDeploy({
+                  chainName: CasperNetworkName.Testnet,
                   recipientPublicKeyHex: '0106ca7c39cd272dbf21a86eeb3b36b7c26e2e9b94af64292419f7862936bca2ca',
                   senderPublicKeyHex: signingKey,
                   transferAmount: '2500000000',
@@ -391,6 +482,7 @@ function App() {
                 const pk =
                   '01ebf429a18b232b71df5759fe4e77dd05bf8ab3f2ccdcca50d0baa47d6ff27e02';
                 const deploy = makeCsprTransferDeploy({
+                  chainName: CasperNetworkName.Testnet,
                   recipientPublicKeyHex: '0106ca7c39cd272dbf21a86eeb3b36b7c26e2e9b94af64292419f7862936bca2ca',
                   senderPublicKeyHex: pk,
                   transferAmount: '2500000000',
@@ -416,10 +508,10 @@ function App() {
               onClick={() => {
                 const transaction = new NativeTransferBuilder()
                   .from(PublicKey.fromHex(signingKey))
-                  .target(PublicKey.fromHex('0106ca7c39cd272dbf21a86eeb3b36b7c26e2e9b94af64292419f7862936bca2ca'))
+                  .target(PublicKey.fromHex('020329169b6c9e632fbeca5677fcad1bb48b87cd80500202911b933c16fa1d107e2e'))
                   .amount('25000000000') // Amount in motes
                   .id(Date.now())
-                  .chainName('casper-net-1')
+                  .chainName(CasperNetworkName.Testnet)
                   .payment(100_000_000)
                   .build();
 
@@ -436,7 +528,7 @@ function App() {
                   .validator(PublicKey.fromHex('0106ca7c39cd272dbf21a86eeb3b36b7c26e2e9b94af64292419f7862936bca2ca'))
                   .amount('2500000000')
                   .payment(1_000_000_000)
-                  .chainName('casper-net-1')
+                  .chainName(CasperNetworkName.Testnet)
                   .build();
 
                 handleSignTx(signingKey, tx);
@@ -449,10 +541,10 @@ function App() {
               onClick={() => {
                 const tx = new NativeUndelegateBuilder()
                   .from(PublicKey.fromHex(signingKey))
-                  .validator(PublicKey.fromHex('0106ca7c39cd272dbf21a86eeb3b36b7c26e2e9b94af64292419f7862936bca2ca'))
+                  .validator(PublicKey.fromHex('017d96b9a63abcb61c870a4f55187a0a7ac24096bdb5fc585c12a686a4d892009e'))
                   .amount('2500000000')
                   .payment(1_000_000_000)
-                  .chainName('casper-net-1')
+                  .chainName(CasperNetworkName.Testnet)
                   .build();
                 handleSignTx(signingKey, tx);
               }}
@@ -464,11 +556,11 @@ function App() {
               onClick={() => {
                 const tx = new NativeRedelegateBuilder()
                   .from(PublicKey.fromHex(signingKey))
-                  .validator(PublicKey.fromHex('0106ca7c39cd272dbf21a86eeb3b36b7c26e2e9b94af64292419f7862936bca2ca'))
-                  .newValidator(PublicKey.fromHex('017d96b9a63abcb61c870a4f55187a0a7ac24096bdb5fc585c12a686a4d892009e'))
+                  .validator(PublicKey.fromHex('017d9aa0b86413d7ff9a9169182c53f0bacaa80d34c211adab007ed4876af17077'))
+                  .newValidator(PublicKey.fromHex('01c8be540a643e6c9df283dd2d2d6be67748f69a3c7bb6cf34471c899b8e858c9a'))
                   .amount('2500000000')
                   .payment(1_000_000_000)
-                  .chainName('casper-net-1')
+                  .chainName(CasperNetworkName.Testnet)
                   .build();
                 handleSignTx(signingKey, tx);
               }}
@@ -481,14 +573,14 @@ function App() {
                 try {
                   const tx = new ContractCallBuilder()
                     .from(PublicKey.fromHex(signingKey))
-                    .byHash('6ca070C78D4Eb468b4db4CBC5CaDd815c35E15019a841c137372A88D7e247d1D')
+                    .byPackageHash('6ca070c78d4eb468b4db4cbc5cadd815c35e15019a841c137372a88d7e247d1d')
                     .entryPoint('burn')
                     .runtimeArgs(Args.fromMap({
                       owner: CLValue.newCLPublicKey(PublicKey.fromHex('0111BC2070A9aF0F26F94B8549BfFA5643eAD0bc68EBa3b1833039Cfa2a9a8205d')),
                       token_ids: CLValue.newCLList(CLTypeUInt256, [CLValue.newCLUInt256(101)])
                     }))
                     .payment(3_000_000_000) // Amount in motes
-                    .chainName('casper-net-1')
+                    .chainName(CasperNetworkName.Testnet)
                     .build();
 
                   handleSignTx(signingKey, tx);
@@ -498,7 +590,67 @@ function App() {
                 }
               }}
             >
-              Casper Studio
+              NFT
+            </Button>
+            <Button
+              variant='text'
+              onClick={() => {
+                try {
+                  const tx = makeCep18TransferTransaction({
+                    chainName: CasperNetworkName.Testnet,
+                    recipientPublicKeyHex: '020329169b6c9e632fbeca5677fcad1bb48b87cd80500202911b933c16fa1d107e2e',
+                    senderPublicKeyHex: signingKey,
+                    transferAmount: (0.1 * 10 ** 18).toString(),
+                    paymentAmount: (3 * 10 ** 9).toString(),
+                    contractPackageHash: '7fd113f60890c8ea77daf90880852f544b618c62315bcfd2dd93304c389fa19d',
+                    casperNetworkApiVersion: '2.0'
+                  });
+
+                  handleSignTx(signingKey, tx);
+
+                } catch (e) {
+                  alert(e);
+                }
+              }}
+            >
+              CEP18
+            </Button>
+            <Button
+              variant='text'
+              onClick={() => {
+                try {
+                  const tx = makeCasperMarketListBuilder(signingKey).build();
+
+                  handleSignTx(signingKey, tx);
+
+                } catch (e) {
+                  alert(e);
+                }
+              }}
+            >
+              CSPR Market
+            </Button>
+            <Button
+              variant='text'
+              onClick={() => {
+                try {
+                  const tx = new ContractCallBuilder()
+                    .from(PublicKey.fromHex(signingKey))
+                    .byPackageHash('ff9c3c0c447d2e3a79c02e13d048c03f6fac8a911fdc04118cc754c84ef6259e')
+                    .entryPoint('set_associated_keys')
+                    .runtimeArgs(Args.fromMap({}))
+                    .payment(3_000_000_000) // Amount in motes
+                    .chainName(CasperNetworkName.Testnet)
+                    .build();
+
+                  handleSignTx(signingKey, tx);
+
+                } catch (e) {
+                  alert(e);
+                }
+              }}
+            >
+              Associated keys
             </Button>
             <Button
               variant='text'
@@ -508,7 +660,7 @@ function App() {
                   .target(PublicKey.fromHex('0106ca7c39cd272dbf21a86eeb3b36b7c26e2e9b94af64292419f7862936bca2ca'))
                   .amount('25000000000') // Amount in motes
                   .id(Date.now())
-                  .chainName('casper-net-1')
+                  .chainName(CasperNetworkName.Testnet)
                   .payment(100_000_000)
                   .build();
 
