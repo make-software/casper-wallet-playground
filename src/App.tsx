@@ -4,7 +4,7 @@ import { Button } from '@mui/material';
 import styled from '@emotion/styled';
 import { useWalletService } from './wallet-service';
 import {
-  makeCasperMarketListBuilder,
+  makeCasperMarketListBuilder, makeContractWithListsBuilder, makeContractWithLongNameBuilder, makeOdraWasmProxyBuilder,
   makeUnknownContractBuilder,
   makeWasmBuilder,
   makeWasmProxyBuilder,
@@ -740,6 +740,36 @@ function App() {
               variant='text'
               onClick={() => {
                 try {
+                  const tx = makeContractWithListsBuilder(signingKey).build();
+
+                  handleSignTx(signingKey, tx);
+
+                } catch (e) {
+                  alert(e);
+                }
+              }}
+            >
+              Unknown contract with lists
+            </Button>
+            <Button
+              variant='text'
+              onClick={() => {
+                try {
+                  const tx = makeContractWithLongNameBuilder(signingKey).build();
+
+                  handleSignTx(signingKey, tx);
+
+                } catch (e) {
+                  alert(e);
+                }
+              }}
+            >
+              Contract with long name
+            </Button>
+            <Button
+              variant='text'
+              onClick={() => {
+                try {
                   const tx = makeWasmProxyBuilder(signingKey).build();
 
                   handleSignTx(signingKey, tx);
@@ -750,6 +780,21 @@ function App() {
               }}
             >
               WASM Proxy
+            </Button>
+            <Button
+              variant='text'
+              onClick={() => {
+                try {
+                  const tx = makeOdraWasmProxyBuilder(signingKey).build();
+
+                  handleSignTx(signingKey, tx);
+
+                } catch (e) {
+                  alert(e);
+                }
+              }}
+            >
+             ODRA WASM Proxy
             </Button>
             <Button
               variant='text'
