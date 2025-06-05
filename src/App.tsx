@@ -3,7 +3,13 @@ import logo from './logo.svg';
 import { Button } from '@mui/material';
 import styled from '@emotion/styled';
 import { useWalletService } from './wallet-service';
-import { makeCasperMarketListBuilder, truncateKey } from './utils';
+import {
+  makeCasperMarketListBuilder,
+  makeUnknownContractBuilder,
+  makeWasmBuilder,
+  makeWasmProxyBuilder,
+  truncateKey
+} from './utils';
 import {
   Args,
   AuctionManagerEntryPoint, CLTypeUInt256, CLValue,
@@ -19,7 +25,7 @@ import {
   NativeUndelegateBuilder,
   PublicKey,
   Transaction,
-  CasperNetworkName,
+  CasperNetworkName
 } from 'casper-js-sdk';
 
 const Container = styled('div')({
@@ -452,6 +458,69 @@ function App() {
             <Button
               variant='text'
               onClick={() => {
+                try {
+                  const tx = makeUnknownContractBuilder(signingKey).buildFor1_5();
+
+                  const deploy = tx.getDeploy();
+
+                  if (!deploy) {
+                    throw new Error('Deploy is null');
+                  }
+
+                  handleSignDeploy(signingKey, deploy);
+
+                } catch (e) {
+                  alert(e);
+                }
+              }}
+            >
+              Unknown Contract
+            </Button>
+            <Button
+              variant='text'
+              onClick={() => {
+                try {
+                  const tx = makeWasmProxyBuilder(signingKey).buildFor1_5();
+
+                  const deploy = tx.getDeploy();
+
+                  if (!deploy) {
+                    throw new Error('Deploy is null');
+                  }
+
+                  handleSignDeploy(signingKey, deploy);
+
+                } catch (e) {
+                  alert(e);
+                }
+              }}
+            >
+              WASM PROXY
+            </Button>
+            <Button
+              variant='text'
+              onClick={() => {
+                try {
+                  const tx = makeWasmBuilder(signingKey).buildFor1_5();
+
+                  const deploy = tx.getDeploy();
+
+                  if (!deploy) {
+                    throw new Error('Deploy is null');
+                  }
+
+                  handleSignDeploy(signingKey, deploy);
+
+                } catch (e) {
+                  alert(e);
+                }
+              }}
+            >
+              WASM
+            </Button>
+            <Button
+              variant='text'
+              onClick={() => {
                 const message =
                   'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.';
                 handleSignMessage(message, signingKey);
@@ -651,6 +720,51 @@ function App() {
               }}
             >
               Associated keys
+            </Button>
+            <Button
+              variant='text'
+              onClick={() => {
+                try {
+                  const tx = makeUnknownContractBuilder(signingKey).build();
+
+                  handleSignTx(signingKey, tx);
+
+                } catch (e) {
+                  alert(e);
+                }
+              }}
+            >
+              Unknown contract
+            </Button>
+            <Button
+              variant='text'
+              onClick={() => {
+                try {
+                  const tx = makeWasmProxyBuilder(signingKey).build();
+
+                  handleSignTx(signingKey, tx);
+
+                } catch (e) {
+                  alert(e);
+                }
+              }}
+            >
+              WASM Proxy
+            </Button>
+            <Button
+              variant='text'
+              onClick={() => {
+                try {
+                  const tx = makeWasmBuilder(signingKey).build();
+
+                  handleSignTx(signingKey, tx);
+
+                } catch (e) {
+                  alert(e);
+                }
+              }}
+            >
+              WASM
             </Button>
             <Button
               variant='text'
