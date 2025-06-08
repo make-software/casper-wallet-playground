@@ -1,18 +1,33 @@
 import {
   Args,
-  CasperNetworkName, CLTypeBool, CLTypeInt32, CLTypeInt64, CLTypeList,
-  CLTypeMap, CLTypeOption, CLTypePublicKey,
+  CasperNetworkName,
+  CLTypeBool,
+  CLTypeInt32,
+  CLTypeInt64,
+  CLTypeList,
+  CLTypeMap,
+  CLTypeOption,
+  CLTypePublicKey,
   CLTypeString,
-  CLTypeTuple1, CLTypeTuple2,
-  CLTypeUInt512, CLTypeUInt64, CLTypeUInt8,
+  CLTypeTuple1,
+  CLTypeTuple2,
+  CLTypeUInt512,
+  CLTypeUInt64,
+  CLTypeUInt8,
   CLValue,
   CLValueMap,
-  ContractCallBuilder, Conversions,
+  CLValueTuple2,
+  ContractCallBuilder,
+  Conversions,
+  HexBytes,
   Key,
+  KeyAlgorithm,
   KeyTypeID,
-  PublicKey, SessionBuilder,
-  URef,
-  CLValueTuple2
+  NativeTransferBuilder,
+  PrivateKey,
+  PublicKey,
+  SessionBuilder,
+  URef
 } from 'casper-js-sdk';
 
 export function truncateKey(key: string): string {
@@ -271,4 +286,23 @@ export const makeContractWithListsBuilder = (signingKey: string) => {
     .runtimeArgs(Args.fromMap(argsMap))
     .payment(5000000000)
     .chainName(CasperNetworkName.Testnet);
+};
+
+export const makeNativeTransferWithMultiSigTx = (signingKey: string) => {
+  const pk1 = PrivateKey.generate(KeyAlgorithm.ED25519);
+  const pk2 = PrivateKey.generate(KeyAlgorithm.SECP256K1);
+
+  const tx = new NativeTransferBuilder()
+    .from(pk1.publicKey)
+    .target(PublicKey.fromHex(signingKey))
+    .amount('25000000000')
+    .id(Date.now())
+    .chainName(CasperNetworkName.Testnet)
+    .payment(100_000_000)
+    .build();
+
+  tx.sign(pk1);
+  tx.sign(pk2);
+
+  return tx;
 };
