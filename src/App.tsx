@@ -4,7 +4,11 @@ import { Button } from '@mui/material';
 import styled from '@emotion/styled';
 import { useWalletService } from './wallet-service';
 import {
-  makeCasperMarketListBuilder, makeContractWithListsBuilder, makeContractWithLongNameBuilder, makeOdraWasmProxyBuilder,
+  makeCasperMarketListBuilder,
+  makeContractWithListsBuilder,
+  makeContractWithLongNameBuilder,
+  makeNativeTransferWithMultiSigTx,
+  makeOdraWasmProxyBuilder,
   makeUnknownContractBuilder,
   makeWasmBuilder,
   makeWasmProxyBuilder,
@@ -25,7 +29,7 @@ import {
   NativeUndelegateBuilder,
   PublicKey,
   Transaction,
-  CasperNetworkName
+  CasperNetworkName, HexBytes
 } from 'casper-js-sdk';
 
 const Container = styled('div')({
@@ -810,6 +814,21 @@ function App() {
               }}
             >
               WASM
+            </Button>
+            <Button
+              variant='text'
+              onClick={() => {
+                try {
+                  const tx = makeNativeTransferWithMultiSigTx(signingKey);
+
+                  handleSignTx(signingKey, tx);
+
+                } catch (e) {
+                  alert(e);
+                }
+              }}
+            >
+              With multisig
             </Button>
             <Button
               variant='text'
