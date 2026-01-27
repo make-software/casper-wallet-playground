@@ -67,7 +67,10 @@ function App() {
     getVersion,
     isSiteConnected,
     getActivePublicKey,
-    getActiveKeySupports
+    getActiveKeySupports,
+    decryptMessage,
+    getEncryptedMessage,
+    log
   } = useWalletService();
 
   // const isConnected = Boolean(activePublicKey);
@@ -852,10 +855,84 @@ function App() {
         }
       </Row>
 
-      <div>
+      <Row>
+        {
+          <div>
+            <div style={{ textAlign: 'center' }}>
+              ENCRYPT/DECRYPT MESSAGE
+            </div>
+            <Button
+              variant='text'
+              onClick={async () => {
+                try {
+                  const pk = await getActivePublicKey();
+
+                  if (!pk) {
+                    alert('No active public key found');
+                    return;
+                  }
+
+                  const msg = prompt('Enter message to encrypt');
+
+                  if (!msg) {
+                    alert('No message entered');
+                    return;
+                  }
+
+                  const encryptedResp = await getEncryptedMessage(msg, pk);
+
+                  log(`-------
+Encrypted message - ${encryptedResp.encryptedMessage}
+-------`);
+                } catch (e: any) {
+                  alert(e.message);
+                }
+              }}
+            >
+              Encrypt with active public key
+            </Button>
+            <Button
+              variant='text'
+              onClick={async () => {
+                try {
+                  const pk = await getActivePublicKey();
+
+                  if (!pk) {
+                    alert('No active public key found');
+                    return;
+                  }
+
+                  const msg = prompt('Enter message to decrypt');
+
+                  if (!msg) {
+                    alert('No message entered');
+                    return;
+                  }
+
+                  const decryptedResp = await decryptMessage(msg, pk);
+
+                  if (decryptedResp.cancelled) {
+                    alert('Decrypt cancelled');
+                  } else {
+                    log(`-------
+Decrypted message - ${decryptedResp.message}
+-------`);
+                  }
+                } catch (e: any) {
+                  alert(e.message);
+                }
+              }}
+            >
+              Decrypt with active public key
+            </Button>
+          </div>
+        }
+      </Row>
+
+      <div style={{ padding: '0 16px' }}>
         {logs.map(([log, payload], index) => (
-          <div key={index}>
-            {log} {JSON.stringify(payload, null, 2)}]
+          <div key={index} style={{ wordBreak: 'break-all', whiteSpace: 'pre-wrap', marginBottom: '8px' }}>
+            {log} {JSON.stringify(payload, null, 2)}
           </div>
         ))}
       </div>

@@ -47,6 +47,16 @@ type WalletService = {
   ) => Promise<
     { cancelled: true } | { cancelled: false; signature: Uint8Array }
   >;
+  decryptMessage: (
+    message: string,
+    signingPublicKeyHex: string
+  ) => Promise<
+    { cancelled: true } | { cancelled: false; message: string }
+  >;
+  getEncryptedMessage: (
+    message: string,
+    signingPublicKeyHex: string
+  ) => Promise<{ encryptedMessage: string }>;
   disconnect: () => Promise<boolean>;
   isSiteConnected: () => Promise<boolean>;
   getActivePublicKey: () => Promise<string | undefined>;
@@ -274,6 +284,10 @@ export const WalletServiceProvider = props => {
     return getCasperWalletInstance().signMessage(message, accountPublicKey);
   };
 
+  const decryptMessage = async (message: string, accountPublicKey: string) => {
+    return getCasperWalletInstance().decryptMessage(message, accountPublicKey);
+  };
+
   const disconnect = () => {
     setActivePublicKey(null);
     return getCasperWalletInstance()
@@ -287,6 +301,10 @@ export const WalletServiceProvider = props => {
 
   const getActivePublicKey = async () => {
     return getCasperWalletInstance().getActivePublicKey();
+  };
+
+  const getEncryptedMessage = async (message: string, signingPublicKeyHex: string) => {
+    return getCasperWalletInstance().getEncryptedMessage(message, signingPublicKeyHex);
   };
 
   const getActiveKeySupports = async () => {
@@ -305,11 +323,13 @@ export const WalletServiceProvider = props => {
     switchAccount: switchAccount,
     sign: sign,
     signMessage: signMessage,
+    decryptMessage,
     disconnect: disconnect,
     isSiteConnected: isSiteConnected,
     getActivePublicKey: getActivePublicKey,
+    getEncryptedMessage,
     getVersion: getVersion,
-    getActiveKeySupports,
+    getActiveKeySupports
   };
 
   return <WalletServiceContextProvider value={contextProps} {...props} />;
