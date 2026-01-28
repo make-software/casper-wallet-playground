@@ -51,7 +51,7 @@ type WalletService = {
     message: string,
     signingPublicKeyHex: string
   ) => Promise<
-    { cancelled: true } | { cancelled: false; message: string }
+    { cancelled: true } | { cancelled: false; decryptedMessage: string }
   >;
   getEncryptedMessage: (
     message: string,

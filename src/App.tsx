@@ -915,7 +915,7 @@ Encrypted message - ${encryptedResp.encryptedMessage}
                     alert('Decrypt cancelled');
                   } else {
                     log(`-------
-Decrypted message - ${decryptedResp.message}
+Decrypted message - ${decryptedResp.decryptedMessage}
 -------`);
                   }
                 } catch (e: any) {
