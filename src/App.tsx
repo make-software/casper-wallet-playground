@@ -69,7 +69,7 @@ function App() {
     getActivePublicKey,
     getActiveKeySupports,
     decryptMessage,
-    getEncryptedMessage,
+    encryptMessage,
     log
   } = useWalletService();
 
@@ -879,7 +879,7 @@ function App() {
                     return;
                   }
 
-                  const encryptedResp = await getEncryptedMessage(msg, pk);
+                  const encryptedResp = await encryptMessage(msg, pk);
 
                   log(`-------
 Encrypted message - ${encryptedResp.encryptedMessage}

@@ -53,7 +53,7 @@ type WalletService = {
   ) => Promise<
     { cancelled: true } | { cancelled: false; decryptedMessage: string }
   >;
-  getEncryptedMessage: (
+  encryptMessage: (
     message: string,
     signingPublicKeyHex: string
   ) => Promise<{ encryptedMessage: string }>;
@@ -303,8 +303,8 @@ export const WalletServiceProvider = props => {
     return getCasperWalletInstance().getActivePublicKey();
   };
 
-  const getEncryptedMessage = async (message: string, signingPublicKeyHex: string) => {
-    return getCasperWalletInstance().getEncryptedMessage(message, signingPublicKeyHex);
+  const encryptMessage = async (message: string, signingPublicKeyHex: string) => {
+    return getCasperWalletInstance().encryptMessage(message, signingPublicKeyHex);
   };
 
   const getActiveKeySupports = async () => {
@@ -327,7 +327,7 @@ export const WalletServiceProvider = props => {
     disconnect: disconnect,
     isSiteConnected: isSiteConnected,
     getActivePublicKey: getActivePublicKey,
-    getEncryptedMessage,
+    encryptMessage,
     getVersion: getVersion,
     getActiveKeySupports
   };
