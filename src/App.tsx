@@ -318,6 +318,27 @@ function App() {
             <Button
               variant='text'
               onClick={() => {
+                const key  = prompt('Enter signing public key hex');
+
+                if (!key) {
+                  return;
+                }
+
+                const deploy = makeCsprTransferDeploy({
+                  chainName: CasperNetworkName.Testnet,
+                  recipientPublicKeyHex: '020329169b6c9e632fbeca5677fcad1bb48b87cd80500202911b933c16fa1d107e2e',
+                  senderPublicKeyHex: key,
+                  transferAmount: '2500000000',
+                  memo: '1234'
+                });
+                handleSignDeploy(key, deploy);
+              }}
+            >
+              Transfer (specify signing key)
+            </Button>
+            <Button
+              variant='text'
+              onClick={() => {
                 const deploy = makeAuctionManagerDeploy({
                   chainName: CasperNetworkName.Testnet,
                   contractEntryPoint: AuctionManagerEntryPoint.delegate,
@@ -533,7 +554,23 @@ function App() {
                 handleSignMessage(message, signingKey);
               }}
             >
-              Message
+              Sign Message
+            </Button>
+            <Button
+              variant='text'
+              onClick={() => {
+                const key  = prompt('Enter signing public key hex');
+
+                if (!key) {
+                  return;
+                }
+
+                const message =
+                  'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.';
+                handleSignMessage(message, key);
+              }}
+            >
+              Sign Message (specify signing key)
             </Button>
             <Button
               variant='text'
@@ -924,6 +961,39 @@ Decrypted message - ${decryptedResp.decryptedMessage}
               }}
             >
               Decrypt with active public key
+            </Button>
+            <Button
+              variant='text'
+              onClick={async () => {
+                try {
+                  const msg = prompt('Enter message to decrypt');
+
+                  if (!msg) {
+                    alert('No message entered');
+                    return;
+                  }
+
+                  const key  = prompt('Enter signing public key hex');
+
+                  if (!key) {
+                    return;
+                  }
+
+                  const decryptedResp = await decryptMessage(msg, key);
+
+                  if (decryptedResp.cancelled) {
+                    alert('Decrypt cancelled');
+                  } else {
+                    log(`-------
+Decrypted message - ${decryptedResp.decryptedMessage}
+-------`);
+                  }
+                } catch (e: any) {
+                  alert(e.message);
+                }
+              }}
+            >
+              Decrypt (specify signing key)
             </Button>
           </div>
         }
