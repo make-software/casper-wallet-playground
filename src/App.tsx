@@ -2,7 +2,7 @@ import React from 'react';
 import logo from './logo.svg';
 import { Button } from '@mui/material';
 import styled from '@emotion/styled';
-import { useWalletService } from './wallet-service';
+import { useWalletService, SignTypedDataParams } from './wallet-service';
 import {
   makeCasperMarketListBuilder,
   makeContractWithListsBuilder,
@@ -29,7 +29,7 @@ import {
   NativeUndelegateBuilder,
   PublicKey,
   Transaction,
-  CasperNetworkName, HexBytes
+  CasperNetworkName,
 } from 'casper-js-sdk';
 
 const Container = styled('div')({
@@ -55,6 +55,51 @@ const RowWrap = styled(Row)({
   flexWrap: 'wrap'
 });
 
+const SAMPLE_CONTRACT_PACKAGE_HASH =
+  '7fd113f60890c8ea77daf90880852f544b618c62315bcfd2dd93304c389fa19d';
+
+const makePermitTypedData = (): SignTypedDataParams['typedData'] => ({
+  domain: {
+    name: 'MyDapp',
+    version: '1',
+    chain_name: 'casper',
+    contract_package_hash: SAMPLE_CONTRACT_PACKAGE_HASH
+  },
+  types: {
+    Permit: [
+      { name: 'owner', type: 'address' },
+      { name: 'spender', type: 'address' },
+      { name: 'value', type: 'uint256' }
+    ]
+  },
+  primaryType: 'Permit',
+  message: {
+    owner: '0x1111111111111111111111111111111111111111',
+    spender: '0x2222222222222222222222222222222222222222',
+    value: '1000'
+  }
+});
+
+const makeUnsupportedTypedData = (): SignTypedDataParams['typedData'] => ({
+  domain: {
+    name: 'MyDapp',
+    version: '1',
+    chain_name: 'casper',
+    contract_package_hash: SAMPLE_CONTRACT_PACKAGE_HASH
+  },
+  types: {
+    Permit: [
+      { name: 'owner', type: 'address' },
+      { name: 'nonce', type: 'bytes16' }
+    ]
+  },
+  primaryType: 'Permit',
+  message: {
+    owner: '0x1111111111111111111111111111111111111111',
+    nonce: '0x00000000000000000000000000000000'
+  }
+});
+
 function App() {
   const {
     logs,
@@ -63,6 +108,7 @@ function App() {
     disconnect,
     sign,
     signMessage,
+    signTypedData,
     switchAccount,
     getVersion,
     isSiteConnected,
@@ -205,6 +251,31 @@ function App() {
           alert('Sign cancelled');
         } else {
           alert('Sign successful: ' + JSON.stringify(res.signature, null, 2));
+        }
+      })
+      .catch(err => {
+        alert('Error: ' + err);
+        throw err;
+      });
+  };
+
+  const handleSignTypedData = (
+    params: SignTypedDataParams,
+    accountPublicKey: string
+  ) => {
+    signTypedData(params, accountPublicKey)
+      .then(res => {
+        if (!res || res.cancelled) {
+          alert('Sign cancelled');
+        } else if (res.error) {
+          alert('Sign failed: ' + res.error + ' (' + res.errorCode + ')');
+        } else {
+          log('EIP-712 sign result', {
+            signature: res.signature,
+            digest: res.digest,
+            publicKey: res.publicKey,
+            hashArtifacts: res.hashArtifacts
+          });
         }
       })
       .catch(err => {
@@ -994,6 +1065,63 @@ Decrypted message - ${decryptedResp.decryptedMessage}
               }}
             >
               Decrypt (specify signing key)
+            </Button>
+          </div>
+        }
+      </Row>
+
+      <Row>
+        {
+          <div>
+            <div style={{ textAlign: 'center' }}>
+              EIP-712 SIGNATURE REQUEST SCENARIOS
+            </div>
+            <Button
+              variant='text'
+              onClick={() => {
+                handleSignTypedData({ typedData: makePermitTypedData() }, signingKey);
+              }}
+            >
+              Sign Typed Data (Permit)
+            </Button>
+            <Button
+              variant='text'
+              onClick={() => {
+                const key = prompt('Enter signing public key hex');
+
+                if (!key) {
+                  return;
+                }
+
+                handleSignTypedData({ typedData: makePermitTypedData() }, key);
+              }}
+            >
+              Sign Typed Data (specify signing key)
+            </Button>
+            <Button
+              variant='text'
+              onClick={() => {
+                handleSignTypedData(
+                  {
+                    typedData: makePermitTypedData(),
+                    options: { returnHashArtifacts: true }
+                  },
+                  signingKey
+                );
+              }}
+            >
+              With hash artifacts
+            </Button>
+            <Button
+              variant='text'
+              onClick={() => {
+                handleSignTypedData(
+                  { typedData: makeUnsupportedTypedData() },
+                  signingKey
+                );
+              }}
+            >
+              Unsupported type (error)
             </Button>
           </div>
         }
