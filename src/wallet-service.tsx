@@ -43,7 +43,7 @@ export type SignTypedDataParams = {
   };
 };
 
-type EIP712HashArtifacts = {
+export type EIP712HashArtifacts = {
   domainTypeString?: string;
   domain?: Record<string, unknown>;
   domainSeparator?: string;

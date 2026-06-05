@@ -90,6 +90,7 @@ const makeUnsupportedTypedData = (): SignTypedDataParams['typedData'] => ({
   types: {
     Permit: [
       { name: 'owner', type: 'address' },
+      // bytes16 is intentionally unsupported, to exercise the error path
       { name: 'nonce', type: 'bytes16' }
     ]
   },
