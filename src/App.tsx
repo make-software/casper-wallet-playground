@@ -62,7 +62,7 @@ const makePermitTypedData = (): SignTypedDataParams['typedData'] => ({
   domain: {
     name: 'MyDapp',
     version: '1',
-    chain_name: 'casper',
+    chain_name: CasperNetworkName.Testnet,
     contract_package_hash: SAMPLE_CONTRACT_PACKAGE_HASH
   },
   types: {
@@ -84,7 +84,7 @@ const makeUnsupportedTypedData = (): SignTypedDataParams['typedData'] => ({
   domain: {
     name: 'MyDapp',
     version: '1',
-    chain_name: 'casper',
+    chain_name: CasperNetworkName.Testnet,
     contract_package_hash: SAMPLE_CONTRACT_PACKAGE_HASH
   },
   types: {
