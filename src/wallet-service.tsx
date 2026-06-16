@@ -29,6 +29,39 @@ type WalletStorageState = {
   publicKey: string | null;
 };
 
+export type SignTypedDataParams = {
+  typedData: {
+    domain: Record<string, unknown>;
+    types: Record<string, Array<{ name: string; type: string }>>;
+    primaryType: string;
+    message: Record<string, unknown>;
+  };
+  options?: {
+    domainTypes?: Array<{ name: string; type: string }>;
+    returnHashArtifacts?: boolean;
+    rejectUnknownFields?: boolean;
+  };
+};
+
+export type EIP712HashArtifacts = {
+  domainTypeString?: string;
+  domain?: Record<string, unknown>;
+  domainSeparator?: string;
+  canonicalTypeString?: string;
+  typeHash?: string;
+  structHash?: string;
+};
+
+export type SignTypedDataResult = {
+  cancelled: boolean;
+  signature: string | null;
+  digest: string | null;
+  publicKey: string | null;
+  error: string | null;
+  errorCode?: string;
+  hashArtifacts?: EIP712HashArtifacts;
+};
+
 type WalletService = {
   logs: [string, object][];
   log: (msg: string, payload?: any) => void;
@@ -47,6 +80,10 @@ type WalletService = {
   ) => Promise<
     { cancelled: true } | { cancelled: false; signature: Uint8Array }
   >;
+  signTypedData: (
+    params: SignTypedDataParams,
+    accountPublicKey: string
+  ) => Promise<SignTypedDataResult | undefined>;
   decryptMessage: (
     message: string,
     signingPublicKeyHex: string
@@ -284,6 +321,11 @@ export const WalletServiceProvider = props => {
     return getCasperWalletInstance().signMessage(message, accountPublicKey);
   };
 
+  const signTypedData = async (
+    params: SignTypedDataParams,
+    accountPublicKey: string
+  ) => getCasperWalletInstance().signTypedData(params, accountPublicKey);
+
   const decryptMessage = async (message: string, accountPublicKey: string) => {
     return getCasperWalletInstance().decryptMessage(message, accountPublicKey);
   };
@@ -323,6 +365,7 @@ export const WalletServiceProvider = props => {
     switchAccount: switchAccount,
     sign: sign,
     signMessage: signMessage,
+    signTypedData,
     decryptMessage,
     disconnect: disconnect,
     isSiteConnected: isSiteConnected,
