@@ -109,7 +109,7 @@ function App() {
     disconnect,
     sign,
     signMessage,
-    signTypedData,
+    signTypedDataEIP712,
     switchAccount,
     getVersion,
     isSiteConnected,
@@ -260,11 +260,11 @@ function App() {
       });
   };
 
-  const handleSignTypedData = (
+  const handleSignTypedDataEIP712 = (
     params: SignTypedDataParams,
     accountPublicKey: string
   ) => {
-    signTypedData(params, accountPublicKey)
+    signTypedDataEIP712(params, accountPublicKey)
       .then(res => {
         if (!res || res.cancelled) {
           alert('Sign cancelled');
@@ -1080,7 +1080,7 @@ Decrypted message - ${decryptedResp.decryptedMessage}
             <Button
               variant='text'
               onClick={() => {
-                handleSignTypedData({ typedData: makePermitTypedData() }, signingKey);
+                handleSignTypedDataEIP712({ typedData: makePermitTypedData() }, signingKey);
               }}
             >
               Sign Typed Data (Permit)
@@ -1094,7 +1094,7 @@ Decrypted message - ${decryptedResp.decryptedMessage}
                   return;
                 }
 
-                handleSignTypedData({ typedData: makePermitTypedData() }, key);
+                handleSignTypedDataEIP712({ typedData: makePermitTypedData() }, key);
               }}
             >
               Sign Typed Data (specify signing key)
@@ -1102,7 +1102,7 @@ Decrypted message - ${decryptedResp.decryptedMessage}
             <Button
               variant='text'
               onClick={() => {
-                handleSignTypedData(
+                handleSignTypedDataEIP712(
                   {
                     typedData: makePermitTypedData(),
                     options: { returnHashArtifacts: true }
@@ -1116,7 +1116,7 @@ Decrypted message - ${decryptedResp.decryptedMessage}
             <Button
               variant='text'
               onClick={() => {
-                handleSignTypedData(
+                handleSignTypedDataEIP712(
                   { typedData: makeUnsupportedTypedData() },
                   signingKey
                 );
