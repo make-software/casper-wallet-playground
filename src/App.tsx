@@ -58,27 +58,100 @@ const RowWrap = styled(Row)({
 const SAMPLE_CONTRACT_PACKAGE_HASH =
   '7fd113f60890c8ea77daf90880852f544b618c62315bcfd2dd93304c389fa19d';
 
-const makePermitTypedData = (): SignTypedDataParams['typedData'] => ({
-  domain: {
-    name: 'MyDapp',
-    version: '1',
-    chain_name: CasperNetworkName.Testnet,
-    contract_package_hash: SAMPLE_CONTRACT_PACKAGE_HASH
-  },
-  types: {
-    Permit: [
-      { name: 'owner', type: 'address' },
-      { name: 'spender', type: 'address' },
-      { name: 'value', type: 'uint256' }
-    ]
-  },
-  primaryType: 'Permit',
-  message: {
-    owner: '0x1111111111111111111111111111111111111111',
-    spender: '0x2222222222222222222222222222222222222222',
-    value: '1000'
-  }
-});
+// CEP-2612 Permit: account-address case. owner/spender are Casper account addresses (0x00 tag).
+const makePermitTypedData = (
+  signerPublicKeyHex: string
+): SignTypedDataParams['typedData'] => {
+  const deadline = Math.floor(Date.now() / 1000) + 60 * 60;
+
+  return {
+    domain: {
+      name: 'MyDapp',
+      version: '1',
+      chain_name: CasperNetworkName.Testnet,
+      contract_package_hash: SAMPLE_CONTRACT_PACKAGE_HASH
+    },
+    types: {
+      Permit: [
+        { name: 'owner', type: 'address' },
+        { name: 'spender', type: 'address' },
+        { name: 'value', type: 'uint256' },
+        { name: 'nonce', type: 'uint256' },
+        { name: 'deadline', type: 'uint256' }
+      ]
+    },
+    primaryType: 'Permit',
+    message: {
+      owner: toEip712Address(signerPublicKeyHex),
+      spender: toEip712Address(
+        '020329169b6c9e632fbeca5677fcad1bb48b87cd80500202911b933c16fa1d107e2e'
+      ),
+      // uint256 values must be numbers (or 0x-hex). The signing lib treats a plain
+      // string as HEX (encodeUint256 -> fromHex), so a decimal string like '0' throws
+      // "Invalid hex string length: 1" and '1000000000' would be mis-encoded as hex.
+      value: 1000000000,
+      nonce: 0,
+      deadline
+    }
+  };
+};
+
+// EIP-712 `address` values must be ABI-encodable: 20 bytes (ETH) or 33 bytes (Casper, 1 key-tag
+// byte + 32). A raw secp256k1 public key (02-prefixed) is 34 bytes and is rejected, so — like the
+// x402 demo (csprclick-x402/src/SignTypedData.tsx) — convert the public key to its account-hash
+// form ('00' + 32-byte account hash) before putting it into the message.
+const toEip712Address = (publicKeyHex: string): string =>
+  '00' +
+  PublicKey.fromHex(publicKeyHex)
+    .accountHash()
+    .toHex()
+    .replace('account-hash-', '');
+
+// A package address is the contract package hash with the Casper Key tag 0x01.
+const toEip712PackageAddress = (packageHashHex: string): string =>
+  '01' + packageHashHex.replace(/^0x/, '');
+
+// Mirrors the x402 "TransferWithAuthorization" payload (csprclick-x402/src/SignTypedData.tsx):
+// address from/to, uint256 value, uint256 validAfter/validBefore (unix seconds), bytes32 nonce.
+const makeTransferWithAuthorizationTypedData = (
+  from: string
+): SignTypedDataParams['typedData'] => {
+  const randomBytes = new Uint8Array(32);
+  crypto.getRandomValues(randomBytes);
+  const nonce = Array.from(randomBytes)
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+  const validAfter = Math.floor(Date.now() / 1000);
+  const validBefore = validAfter + 60 * 60;
+
+  return {
+    domain: {
+      name: 'CSPR.fun',
+      version: '1',
+      chain_name: CasperNetworkName.Testnet,
+      contract_package_hash: SAMPLE_CONTRACT_PACKAGE_HASH
+    },
+    types: {
+      TransferWithAuthorization: [
+        { name: 'from', type: 'address' },
+        { name: 'to', type: 'address' },
+        { name: 'value', type: 'uint256' },
+        { name: 'validAfter', type: 'uint256' },
+        { name: 'validBefore', type: 'uint256' },
+        { name: 'nonce', type: 'bytes32' }
+      ]
+    },
+    primaryType: 'TransferWithAuthorization',
+    message: {
+      from: toEip712Address(from),
+      to: toEip712PackageAddress(SAMPLE_CONTRACT_PACKAGE_HASH),
+      value: 1000000000,
+      validAfter,
+      validBefore,
+      nonce
+    }
+  };
+};
 
 const makeUnsupportedTypedData = (): SignTypedDataParams['typedData'] => ({
   domain: {
@@ -1080,10 +1153,27 @@ Decrypted message - ${decryptedResp.decryptedMessage}
             <Button
               variant='text'
               onClick={() => {
-                handleSignTypedDataEIP712({ typedData: makePermitTypedData() }, signingKey);
+                handleSignTypedDataEIP712(
+                  { typedData: makePermitTypedData(signingKey) },
+                  signingKey
+                );
               }}
             >
-              Sign Typed Data (Permit)
+              Permit (CEP-2612)
+            </Button>
+            <Button
+              variant='text'
+              onClick={() => {
+                handleSignTypedDataEIP712(
+                  {
+                    typedData: makeTransferWithAuthorizationTypedData(signingKey),
+                    options: { returnHashArtifacts: true }
+                  },
+                  signingKey
+                );
+              }}
+            >
+              Transfer With Authorization (CEP-3009)
             </Button>
             <Button
               variant='text'
@@ -1094,24 +1184,13 @@ Decrypted message - ${decryptedResp.decryptedMessage}
                   return;
                 }
 
-                handleSignTypedDataEIP712({ typedData: makePermitTypedData() }, key);
-              }}
-            >
-              Sign Typed Data (specify signing key)
-            </Button>
-            <Button
-              variant='text'
-              onClick={() => {
                 handleSignTypedDataEIP712(
-                  {
-                    typedData: makePermitTypedData(),
-                    options: { returnHashArtifacts: true }
-                  },
-                  signingKey
+                  { typedData: makePermitTypedData(key) },
+                  key
                 );
               }}
             >
-              With hash artifacts
+              Sign Typed Data (specify signing key)
             </Button>
             <Button
               variant='text'
