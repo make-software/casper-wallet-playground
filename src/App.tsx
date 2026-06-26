@@ -182,7 +182,7 @@ function App() {
     disconnect,
     sign,
     signMessage,
-    signTypedDataEIP712,
+    signTypedData,
     switchAccount,
     getVersion,
     isSiteConnected,
@@ -333,11 +333,11 @@ function App() {
       });
   };
 
-  const handleSignTypedDataEIP712 = (
+  const handleSignTypedData = (
     params: SignTypedDataParams,
     accountPublicKey: string
   ) => {
-    signTypedDataEIP712(params, accountPublicKey)
+    signTypedData(params, accountPublicKey)
       .then(res => {
         if (!res || res.cancelled) {
           alert('Sign cancelled');
@@ -1153,7 +1153,7 @@ Decrypted message - ${decryptedResp.decryptedMessage}
             <Button
               variant='text'
               onClick={() => {
-                handleSignTypedDataEIP712(
+                handleSignTypedData(
                   { typedData: makePermitTypedData(signingKey) },
                   signingKey
                 );
@@ -1164,7 +1164,7 @@ Decrypted message - ${decryptedResp.decryptedMessage}
             <Button
               variant='text'
               onClick={() => {
-                handleSignTypedDataEIP712(
+                handleSignTypedData(
                   {
                     typedData: makeTransferWithAuthorizationTypedData(signingKey),
                     options: { returnHashArtifacts: true }
@@ -1184,7 +1184,7 @@ Decrypted message - ${decryptedResp.decryptedMessage}
                   return;
                 }
 
-                handleSignTypedDataEIP712(
+                handleSignTypedData(
                   { typedData: makePermitTypedData(key) },
                   key
                 );
@@ -1195,7 +1195,7 @@ Decrypted message - ${decryptedResp.decryptedMessage}
             <Button
               variant='text'
               onClick={() => {
-                handleSignTypedDataEIP712(
+                handleSignTypedData(
                   { typedData: makeUnsupportedTypedData() },
                   signingKey
                 );

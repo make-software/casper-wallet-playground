@@ -80,7 +80,7 @@ type WalletService = {
   ) => Promise<
     { cancelled: true } | { cancelled: false; signature: Uint8Array }
   >;
-  signTypedDataEIP712: (
+  signTypedData: (
     params: SignTypedDataParams,
     accountPublicKey: string
   ) => Promise<SignTypedDataResult | undefined>;
@@ -321,10 +321,10 @@ export const WalletServiceProvider = props => {
     return getCasperWalletInstance().signMessage(message, accountPublicKey);
   };
 
-  const signTypedDataEIP712 = async (
+  const signTypedData = async (
     params: SignTypedDataParams,
     accountPublicKey: string
-  ) => getCasperWalletInstance().signTypedDataEIP712(params, accountPublicKey);
+  ) => getCasperWalletInstance().signTypedData(params, accountPublicKey);
 
   const decryptMessage = async (message: string, accountPublicKey: string) => {
     return getCasperWalletInstance().decryptMessage(message, accountPublicKey);
@@ -365,7 +365,7 @@ export const WalletServiceProvider = props => {
     switchAccount: switchAccount,
     sign: sign,
     signMessage: signMessage,
-    signTypedDataEIP712,
+    signTypedData,
     decryptMessage,
     disconnect: disconnect,
     isSiteConnected: isSiteConnected,
