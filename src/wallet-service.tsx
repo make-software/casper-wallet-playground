@@ -29,20 +29,27 @@ type WalletStorageState = {
   publicKey: string | null;
 };
 
-export type TypedDataField = { name: string; type: string };
-
 export type SignTypedDataParams = {
   typedData: {
     domain: Record<string, unknown>;
-    types: Record<string, TypedDataField[]>;
+    types: Record<string, Array<{ name: string; type: string }>>;
     primaryType: string;
     message: Record<string, unknown>;
   };
   options?: {
-    domainTypes?: TypedDataField[];
+    domainTypes?: Array<{ name: string; type: string }>;
     returnHashArtifacts?: boolean;
     rejectUnknownFields?: boolean;
   };
+};
+
+export type EIP712HashArtifacts = {
+  domainTypeString?: string;
+  domain?: Record<string, unknown>;
+  domainSeparator?: string;
+  canonicalTypeString?: string;
+  typeHash?: string;
+  structHash?: string;
 };
 
 export type SignTypedDataResult = {
@@ -52,7 +59,7 @@ export type SignTypedDataResult = {
   publicKey: string | null;
   error: string | null;
   errorCode?: string;
-  hashArtifacts?: Record<string, unknown>;
+  hashArtifacts?: EIP712HashArtifacts;
 };
 
 type WalletService = {
@@ -73,11 +80,10 @@ type WalletService = {
   ) => Promise<
     { cancelled: true } | { cancelled: false; signature: Uint8Array }
   >;
-  /** On invalid typed data the wallet resolves with its error payload; classify with `getSignTypedDataOutcome`. */
   signTypedData: (
     params: SignTypedDataParams,
-    signingPublicKeyHex: string
-  ) => Promise<SignTypedDataResult>;
+    accountPublicKey: string
+  ) => Promise<SignTypedDataResult | undefined>;
   decryptMessage: (
     message: string,
     signingPublicKeyHex: string
@@ -317,10 +323,8 @@ export const WalletServiceProvider = props => {
 
   const signTypedData = async (
     params: SignTypedDataParams,
-    signingPublicKeyHex: string
-  ): Promise<SignTypedDataResult> => {
-    return getCasperWalletInstance().signTypedData(params, signingPublicKeyHex);
-  };
+    accountPublicKey: string
+  ) => getCasperWalletInstance().signTypedData(params, accountPublicKey);
 
   const decryptMessage = async (message: string, accountPublicKey: string) => {
     return getCasperWalletInstance().decryptMessage(message, accountPublicKey);

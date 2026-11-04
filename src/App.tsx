@@ -30,7 +30,7 @@ import {
   NativeUndelegateBuilder,
   PublicKey,
   Transaction,
-  CasperNetworkName, HexBytes
+  CasperNetworkName,
 } from 'casper-js-sdk';
 
 const Container = styled('div')({

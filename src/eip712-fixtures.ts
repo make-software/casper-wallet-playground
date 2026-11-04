@@ -1,5 +1,7 @@
 import { PublicKey } from 'casper-js-sdk';
-import type { SignTypedDataParams, TypedDataField } from './wallet-service';
+import type { SignTypedDataParams } from './wallet-service';
+
+type TypedDataField = { name: string; type: string };
 
 type Types = Record<string, TypedDataField[]>;
 type Message = Record<string, unknown>;
@@ -83,7 +85,7 @@ function request(
   };
 }
 
-// EIP-3009 / EIP-2612 token authorizations, signed against the token's own domain.
+// CEP-3009 / CEP-2612 token authorizations, signed against the token's own domain.
 
 const AUTHORIZATION_FIELDS: TypedDataField[] = [
   { name: 'from', type: 'address' },
@@ -332,7 +334,7 @@ const LOREM =
 
 export const EIP712_SUCCESS_SCENARIOS: Eip712Scenario[] = [
   {
-    label: 'TransferWithAuthorization (x402)',
+    label: 'TransferWithAuthorization (CEP-3009, x402)',
     build: key => authorization('TransferWithAuthorization', key)
   },
   {
@@ -340,7 +342,7 @@ export const EIP712_SUCCESS_SCENARIOS: Eip712Scenario[] = [
     build: key => authorization('ReceiveWithAuthorization', key)
   },
   {
-    label: 'Permit (EIP-2612)',
+    label: 'Permit (CEP-2612)',
     build: key =>
       request(wcsprDomain(), { Permit: PERMIT_FIELDS }, 'Permit', {
         owner: accountAddress(key),

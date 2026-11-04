@@ -19,7 +19,6 @@ import {
   CLValueTuple2,
   ContractCallBuilder,
   Conversions,
-  HexBytes,
   Key,
   KeyAlgorithm,
   KeyTypeID,
