@@ -29,6 +29,32 @@ type WalletStorageState = {
   publicKey: string | null;
 };
 
+export type TypedDataField = { name: string; type: string };
+
+export type SignTypedDataParams = {
+  typedData: {
+    domain: Record<string, unknown>;
+    types: Record<string, TypedDataField[]>;
+    primaryType: string;
+    message: Record<string, unknown>;
+  };
+  options?: {
+    domainTypes?: TypedDataField[];
+    returnHashArtifacts?: boolean;
+    rejectUnknownFields?: boolean;
+  };
+};
+
+export type SignTypedDataResult = {
+  cancelled: boolean;
+  signature: string | null;
+  digest: string | null;
+  publicKey: string | null;
+  error: string | null;
+  errorCode?: string;
+  hashArtifacts?: Record<string, unknown>;
+};
+
 type WalletService = {
   logs: [string, object][];
   log: (msg: string, payload?: any) => void;
@@ -47,6 +73,11 @@ type WalletService = {
   ) => Promise<
     { cancelled: true } | { cancelled: false; signature: Uint8Array }
   >;
+  /** On invalid typed data the wallet resolves with its error payload; classify with `getSignTypedDataOutcome`. */
+  signTypedData: (
+    params: SignTypedDataParams,
+    signingPublicKeyHex: string
+  ) => Promise<SignTypedDataResult>;
   decryptMessage: (
     message: string,
     signingPublicKeyHex: string
@@ -284,6 +315,13 @@ export const WalletServiceProvider = props => {
     return getCasperWalletInstance().signMessage(message, accountPublicKey);
   };
 
+  const signTypedData = async (
+    params: SignTypedDataParams,
+    signingPublicKeyHex: string
+  ): Promise<SignTypedDataResult> => {
+    return getCasperWalletInstance().signTypedData(params, signingPublicKeyHex);
+  };
+
   const decryptMessage = async (message: string, accountPublicKey: string) => {
     return getCasperWalletInstance().decryptMessage(message, accountPublicKey);
   };
@@ -323,6 +361,7 @@ export const WalletServiceProvider = props => {
     switchAccount: switchAccount,
     sign: sign,
     signMessage: signMessage,
+    signTypedData,
     decryptMessage,
     disconnect: disconnect,
     isSiteConnected: isSiteConnected,

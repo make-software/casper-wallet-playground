@@ -3,6 +3,7 @@ import logo from './logo.svg';
 import { Button } from '@mui/material';
 import styled from '@emotion/styled';
 import { useWalletService } from './wallet-service';
+import { Eip712Scenarios } from './Eip712Scenarios';
 import {
   makeCasperMarketListBuilder,
   makeContractWithListsBuilder,
@@ -890,6 +891,10 @@ function App() {
 
           </div>
         }
+      </Row>
+
+      <Row>
+        <Eip712Scenarios signingKey={signingKey} />
       </Row>
 
       <Row>
